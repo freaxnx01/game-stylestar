@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>StyleStar – Ankleide-Puzzle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E7D6FF;}
+a{color:#D6437F;} a:hover{color:#A82C60;}
+@keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-16px);}}
+@keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</helmet>
+<div style="min-height:100dvh;font-family:Nunito,sans-serif;background:linear-gradient(165deg,#FFD9EE 0%,#E7D6FF 48%,#CDEDFF 100%);color:#3D2B4F;position:relative;overflow:hidden;display:flex;flex-direction:column;">
+  <div style="position:absolute;top:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:#fff;opacity:.3;animation:floaty 8s ease-in-out infinite;"></div>
+  <div style="position:absolute;bottom:-80px;right:-40px;width:280px;height:280px;border-radius:50%;background:#fff;opacity:.25;animation:floaty 10s ease-in-out infinite;"></div>
+  <div style="position:absolute;top:30%;right:12%;width:70px;height:70px;border-radius:50%;background:#fff;opacity:.35;animation:floaty 6s ease-in-out infinite;"></div>
+
+  <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:100dvh;">
+      <div style="width:54px;height:54px;border-radius:50%;border:6px solid #fff;border-top-color:#F45FA2;animation:spin 0.9s linear infinite;"></div>
+      <div style="font-family:Fredoka,sans-serif;font-size:22px;color:#7A5A96;">Kleider werden gebügelt …</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showStart }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Start" style="flex:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 56px;padding:32px 24px;position:relative;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:20px;max-width:460px;">
+        <div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(52px,8vw,88px);color:#fff;text-shadow:0 4px 0 #E85FA8,0 10px 28px rgba(214,67,127,.35);letter-spacing:2px;">StyleStar</div>
+        <div style="background:rgba(255,255,255,.8);border-radius:999px;padding:8px 22px;font-weight:800;font-size:17px;color:#8A4FB8;box-shadow:0 4px 14px rgba(138,79,184,.18);">Dein Ankleide-Studio – style Outfits zum Thema!</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+          <span style="font-weight:800;font-size:15px;color:#7A5A96;">Dein Hautton:</span>
+          <sc-for list="{{ skinBtns }}" as="sk" hint-placeholder-count="3">
+            <button style="{{ sk.style }}" onClick="{{ sk.pick }}" aria-label="Hautton"></button>
+          </sc-for>
+        </div>
+        <button onClick="{{ startGame }}" style-hover="{{ bigBtnHover }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:26px;color:#fff;background:linear-gradient(120deg,#FF5FA8,#B45FF4);border:none;border-radius:999px;padding:16px 52px;cursor:pointer;box-shadow:0 8px 22px rgba(214,67,127,.4);transition:transform .15s;">Los geht's!</button>
+      </div>
+      <div style="position:relative;height:min(62vh,520px);aspect-ratio:300/620;animation:floaty 7s ease-in-out infinite;">
+        <div style="{{ hairBackL }}"></div>
+        <div style="{{ dollL }}" role="img" aria-label="Deine Figur"></div>
+        <div style="{{ shoesL }}"></div>
+        <div style="{{ bottomL }}"></div>
+        <div style="{{ topL }}"></div>
+        <div style="{{ dressL }}"></div>
+        <div style="{{ hairFrontL }}"></div>
+        <div style="{{ extraL }}"></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showLevels }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Themenwahl" style="flex:1;padding:36px 24px;display:flex;flex-direction:column;align-items:center;gap:26px;position:relative;">
+      <div style="font-family:Fredoka,sans-serif;font-weight:600;font-size:clamp(30px,4.5vw,44px);color:#fff;text-shadow:0 3px 0 #B476E0,0 8px 20px rgba(138,79,184,.3);">Wähle dein Thema</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px;width:min(920px,100%);">
+        <sc-for list="{{ levels }}" as="lv" hint-placeholder-count="8">
+          <button onClick="{{ lv.open }}" style="{{ lv.cardStyle }}">
+            <div style="{{ lv.thumbStyle }}"></div>
+            <div style="font-family:Fredoka,sans-serif;font-weight:600;font-size:17px;color:#3D2B4F;">{{ lv.name }}</div>
+            <div style="display:flex;gap:3px;">
+              <sc-for list="{{ lv.starCols }}" as="stc" hint-placeholder-count="3">
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2l2.9 6.2 6.8.8-5 4.6 1.3 6.7L12 17l-6 3.3 1.3-6.7-5-4.6 6.8-.8Z" fill="{{ stc }}"></path></svg>
+              </sc-for>
+            </div>
+            <sc-if value="{{ lv.locked }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;background:rgba(255,255,255,.75);border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                <svg width="32" height="32" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="3" fill="#B7A8CC"></rect><path d="M8 10 V7 a4 4 0 0 1 8 0 V10" stroke="#B7A8CC" stroke-width="2.5" fill="none"></path></svg>
+                <div style="font-weight:800;font-size:12px;color:#8A79A3;padding:0 10px;">Meistere das Thema davor</div>
+              </div>
+            </sc-if>
+          </button>
+        </sc-for>
+      </div>
+      <button onClick="{{ toStart }}" style="background:rgba(255,255,255,.7);border:none;border-radius:999px;padding:10px 24px;font-family:Nunito,sans-serif;font-weight:800;font-size:15px;color:#8A4FB8;cursor:pointer;">Zurück zum Start</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showGame }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Ankleiden" style="height:100dvh;display:flex;flex-direction:column;position:relative;">
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;flex-wrap:wrap;">
+        <button onClick="{{ toLevels }}" aria-label="Zurück" style="width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.85);color:#B45FF4;font-size:26px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(138,79,184,.2);line-height:1;">‹</button>
+        <div style="background:rgba(255,255,255,.85);border-radius:999px;padding:9px 20px;font-family:Fredoka,sans-serif;font-weight:600;font-size:19px;color:#3D2B4F;box-shadow:0 4px 12px rgba(138,79,184,.15);">Thema: {{ themeName }}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <sc-for list="{{ hints }}" as="h" hint-placeholder-count="3">
+            <span style="background:linear-gradient(120deg,#FFE1EF,#EFE1FF);border-radius:999px;padding:6px 14px;font-weight:800;font-size:13px;color:#B0489B;">{{ h }}</span>
+          </sc-for>
+        </div>
+        <div style="margin-left:auto;background:rgba(255,255,255,.85);border-radius:999px;padding:9px 18px;font-weight:800;font-size:14px;color:#7A5A96;">Thema {{ levelNo }} / {{ levelCount }}</div>
+      </div>
+      <div style="flex:1;min-height:0;display:flex;gap:16px;padding:0 20px 18px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:250px;min-height:300px;display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="position:absolute;width:min(46vh,380px);height:min(46vh,380px);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.75),rgba(255,255,255,0) 70%);"></div>
+          <div style="position:relative;height:min(100%,72vh);aspect-ratio:300/620;">
+            <div style="position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:78%;height:26px;border-radius:50%;background:rgba(138,79,184,.18);"></div>
+            <div style="{{ hairBackL }}"></div>
+            <div style="{{ dollL }}" role="img" aria-label="Deine Figur"></div>
+            <div style="{{ shoesL }}"></div>
+            <div style="{{ bottomL }}"></div>
+            <div style="{{ topL }}"></div>
+            <div style="{{ dressL }}"></div>
+            <div style="{{ hairFrontL }}"></div>
+            <div style="{{ extraL }}"></div>
+          </div>
+        </div>
+        <div style="width:370px;max-width:100%;background:rgba(255,255,255,.72);border-radius:28px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 30px rgba(138,79,184,.15);">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="6">
+              <button onClick="{{ tb.pick }}" style="{{ tb.style }}">{{ tb.label }}</button>
+            </sc-for>
+          </div>
+          <div style="flex:1;min-height:140px;overflow:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-content:start;padding:2px;">
+            <sc-if value="{{ canRemove }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ removeCurrent }}" style="border:3px dashed #D8C8EC;background:transparent;border-radius:18px;min-height:96px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:13px;color:#9B85B8;">Ohne</button>
+            </sc-if>
+            <sc-for list="{{ gridItems }}" as="it" hint-placeholder-count="6">
+              <button onClick="{{ it.pick }}" style="{{ it.cardStyle }}">
+                <div style="{{ it.thumbStyle }}"></div>
+                <div style="font-weight:800;font-size:11.5px;color:#5C4478;line-height:1.2;">{{ it.name }}</div>
+              </button>
+            </sc-for>
+          </div>
+          <button onClick="{{ finish }}" style-hover="{{ bigBtnHover }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:23px;color:#fff;background:linear-gradient(120deg,#FF5FA8,#B45FF4);border:none;border-radius:999px;padding:13px 20px;cursor:pointer;box-shadow:0 8px 20px rgba(214,67,127,.4);transition:transform .15s;">Fertig – zeig deinen Look!</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showResult }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Bewertung" style="position:fixed;inset:0;background:rgba(61,43,79,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;">
+      <div style="background:#fff;border-radius:32px;padding:34px 30px;width:min(92vw,430px);display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;animation:pop .35s ease;box-shadow:0 24px 60px rgba(61,43,79,.35);">
+        <div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:32px;color:#3D2B4F;">{{ resultTitle }}</div>
+        <div style="display:flex;gap:8px;">
+          <sc-for list="{{ resultStars }}" as="rs" hint-placeholder-count="3">
+            <svg width="52" height="52" viewBox="0 0 24 24"><path d="M12 2l2.9 6.2 6.8.8-5 4.6 1.3 6.7L12 17l-6 3.3 1.3-6.7-5-4.6 6.8-.8Z" fill="{{ rs }}"></path></svg>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,#FFE1EF,#EFE1FF);border-radius:999px;padding:10px 26px;white-space:nowrap;flex-shrink:0;">
+          <svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 5.5-8 11-8 11Z" fill="#F4436B"></path></svg>
+          <span style="font-family:Fredoka,sans-serif;font-weight:600;font-size:26px;color:#3D2B4F;">{{ likesShown }} Likes</span>
+        </div>
+        <sc-if value="{{ showTip }}" hint-placeholder-val="{{ false }}">
+          <div style="font-weight:700;font-size:14px;color:#8A79A3;">Tipp: Dein Look sollte so sein – {{ hintText }}. Schau dir die Kleider genau an!</div>
+        </sc-if>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+          <button onClick="{{ again }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:17px;color:#B45FF4;background:#F3ECFB;border:none;border-radius:999px;padding:11px 24px;cursor:pointer;">Nochmal stylen</button>
+          <sc-if value="{{ canNext }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ nextLevel }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:17px;color:#fff;background:linear-gradient(120deg,#FF5FA8,#B45FF4);border:none;border-radius:999px;padding:11px 24px;cursor:pointer;box-shadow:0 6px 16px rgba(214,67,127,.35);">Nächstes Thema</button>
+          </sc-if>
+          <button onClick="{{ toLevels }}" style="font-family:Nunito,sans-serif;font-weight:800;font-size:14px;color:#8A79A3;background:transparent;border:none;cursor:pointer;text-decoration:underline;">Alle Themen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;alleThemenOffen&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Spiel&quot;}, &quot;schwierig&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Spiel&quot;}}">
+class Component extends DCLogic {
+  state = {
+    ready: false, screen: 'start', skin: 0, levelIdx: 0, tab: 'hair',
+    worn: { hair: 'h1', top: 't2', bottom: 'b2', dress: null, shoes: 's2', extra: null },
+    result: null, likesShown: 0, progress: { unlocked: 1, stars: {} }
+  };
+  componentDidMount() {
+    import('./wardrobe.js').then(m => {
+      this.W = m;
+      let p = null;
+      try { p = JSON.parse(localStorage.getItem('stylestar_v1')); } catch (e) {}
+      this.setState({ ready: true, progress: p && p.unlocked ? p : this.state.progress });
+    });
+  }
+  componentWillUnmount() { clearInterval(this.likesTimer); }
+  save(p) { try { localStorage.setItem('stylestar_v1', JSON.stringify(p)); } catch (e) {} }
+  wear(cat, id) {
+    const w = { ...this.state.worn };
+    if (w[cat] === id) { if (cat !== 'hair') w[cat] = null; }
+    else {
+      w[cat] = id;
+      if (cat === 'dress') { w.top = null; w.bottom = null; }
+      if (cat === 'top' || cat === 'bottom') w.dress = null;
+    }
+    this.setState({ worn: w });
+  }
+  needStars() { return this.props.schwierig ? 3 : 2; }
+  finish() {
+    const W = this.W, t = W.THEMES[this.state.levelIdx], w = this.state.worn;
+    const fits = id => !!(id && W.ITEM_BY_ID[id] && W.ITEM_BY_ID[id].tags.includes(t.id));
+    let pts = w.dress ? (fits(w.dress) ? 2 : 0) : (fits(w.top) ? 1 : 0) + (fits(w.bottom) ? 1 : 0);
+    pts += (fits(w.shoes) ? 1 : 0) + (fits(w.extra) ? 1 : 0);
+    const stars = pts >= 4 ? 3 : pts >= 2 ? 2 : 1;
+    const likes = 40 + pts * 38 + Math.floor(Math.random() * 20);
+    const prog = { ...this.state.progress, stars: { ...this.state.progress.stars } };
+    prog.stars[t.id] = Math.max(prog.stars[t.id] || 0, stars);
+    if (stars >= this.needStars()) prog.unlocked = Math.max(prog.unlocked, this.state.levelIdx + 2);
+    this.save(prog);
+    this.setState({ result: { stars, likes }, likesShown: 0, progress: prog });
+    clearInterval(this.likesTimer);
+    this.likesTimer = setInterval(() => {
+      this.setState(s => {
+        const n = Math.min(likes, s.likesShown + 3);
+        if (n >= likes) clearInterval(this.likesTimer);
+        return { likesShown: n };
+      });
+    }, 28);
+  }
+  renderVals() {
+    const s = this.state, W = this.W;
+    const HIDE = { position: 'absolute', inset: '0' };
+    const L = u => ({ position: 'absolute', inset: '0', backgroundImage: 'url("' + u + '")', backgroundSize: 'contain', backgroundPosition: 'center top', backgroundRepeat: 'no-repeat' });
+    const vals = {
+      showLoading: !s.ready, showStart: false, showLevels: false, showGame: false, showResult: false,
+      dollL: HIDE, hairBackL: HIDE, hairFrontL: HIDE, topL: HIDE, bottomL: HIDE, dressL: HIDE, shoesL: HIDE, extraL: HIDE,
+      levels: [], gridItems: [], tabs: [], skinBtns: [], hints: [],
+      bigBtnHover: { transform: 'scale(1.05)' },
+      startGame: () => this.setState({ screen: 'levels' }),
+      toStart: () => this.setState({ screen: 'start' }),
+      toLevels: () => this.setState({ screen: 'levels', result: null }),
+    };
+    if (!s.ready) return vals;
+    vals.showStart = s.screen === 'start';
+    vals.showLevels = s.screen === 'levels';
+    vals.showGame = s.screen === 'game';
+    vals.showResult = !!s.result;
+    const unlocked = this.props.alleThemenOffen ? 99 : s.progress.unlocked;
+    this._dolls = this._dolls || {};
+    vals.dollL = L(this._dolls[s.skin] = this._dolls[s.skin] || W.dollUri(W.SKINS[s.skin]));
+    const hair = W.HAIR.find(h => h.id === s.worn.hair) || W.HAIR[0];
+    vals.hairBackL = L(hair.backImg);
+    vals.hairFrontL = L(hair.frontImg);
+    for (const cat of ['top', 'bottom', 'dress', 'shoes', 'extra']) {
+      vals[cat + 'L'] = s.worn[cat] ? L(W.ITEM_BY_ID[s.worn[cat]].img) : HIDE;
+    }
+    vals.skinBtns = W.SKINS.map((c, i) => ({
+      style: { width: '40px', height: '40px', borderRadius: '50%', background: c, border: i === s.skin ? '3px solid #F45FA2' : '3px solid #fff', cursor: 'pointer', boxShadow: '0 3px 8px rgba(0,0,0,.15)' },
+      pick: () => this.setState({ skin: i })
+    }));
+    vals.levels = W.THEMES.map((t, i) => {
+      const locked = i >= unlocked, st = s.progress.stars[t.id] || 0;
+      return {
+        name: t.name, locked,
+        thumbStyle: { height: '105px', width: '100%', backgroundImage: 'url("' + W.ITEM_BY_ID[t.sig].thumb + '")', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' },
+        starCols: [1, 2, 3].map(n => n <= st ? '#FFC531' : '#E4DCEF'),
+        cardStyle: { position: 'relative', background: '#fff', border: 'none', borderRadius: '24px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: locked ? 'default' : 'pointer', boxShadow: '0 8px 22px rgba(138,79,184,.16)', fontFamily: 'inherit' },
+        open: () => { if (!locked) this.setState({ screen: 'game', levelIdx: i, result: null }); }
+      };
+    });
+    const tabDefs = [['hair', 'Haare'], ['dress', 'Kleider'], ['top', 'Oben'], ['bottom', 'Unten'], ['shoes', 'Schuhe'], ['extra', 'Extras']];
+    vals.tabs = tabDefs.map(([id, label]) => {
+      const act = s.tab === id;
+      return {
+        label,
+        style: { borderRadius: '999px', border: 'none', padding: '8px 14px', fontFamily: 'Fredoka,sans-serif', fontWeight: 600, fontSize: '14px', cursor: 'pointer', background: act ? 'linear-gradient(120deg,#FF5FA8,#B45FF4)' : '#F3ECFB', color: act ? '#fff' : '#8A4FB8', boxShadow: act ? '0 4px 12px rgba(214,67,127,.35)' : 'none' },
+        pick: () => this.setState({ tab: id })
+      };
+    });
+    const list = s.tab === 'hair' ? W.HAIR : W.ITEMS[s.tab];
+    vals.gridItems = list.map(it => {
+      const sel = s.worn[s.tab] === it.id;
+      return {
+        name: it.name, pick: () => this.wear(s.tab, it.id),
+        thumbStyle: { height: '62px', width: '100%', backgroundImage: 'url("' + it.thumb + '")', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' },
+        cardStyle: { background: '#fff', borderRadius: '18px', border: sel ? '3px solid #FF5FA8' : '3px solid transparent', boxShadow: sel ? '0 4px 14px rgba(255,95,168,.4)' : '0 3px 10px rgba(138,79,184,.12)', padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', fontFamily: 'inherit' }
+      };
+    });
+    vals.canRemove = s.tab !== 'hair' && !!s.worn[s.tab];
+    vals.removeCurrent = () => this.wear(s.tab, s.worn[s.tab]);
+    const theme = W.THEMES[s.levelIdx];
+    vals.themeName = theme.name;
+    vals.hints = theme.hints;
+    vals.levelNo = s.levelIdx + 1;
+    vals.levelCount = W.THEMES.length;
+    vals.finish = () => this.finish();
+    if (s.result) {
+      vals.resultTitle = s.result.stars === 3 ? 'Mega! Perfekter Look!' : s.result.stars === 2 ? 'Super Style!' : 'Hmm, fast …';
+      vals.resultStars = [1, 2, 3].map(n => n <= s.result.stars ? '#FFC531' : '#E4DCEF');
+      vals.likesShown = s.likesShown;
+      vals.showTip = s.result.stars < this.needStars();
+      vals.hintText = theme.hints.join(', ');
+      vals.canNext = s.result.stars >= this.needStars() && s.levelIdx + 1 < W.THEMES.length;
+      vals.again = () => this.setState({ result: null });
+      vals.nextLevel = () => this.setState({ result: null, levelIdx: s.levelIdx + 1 });
+    }
+    return vals;
+  }
+}
+</script>
+<script src="./version.js"></script>
+<nav id="game-nav" aria-label="Game navigation" style="position:fixed;right:10px;bottom:8px;z-index:2147483647;display:flex;gap:12px;align-items:center;font:600 13px/1.4 system-ui,-apple-system,sans-serif;padding:6px 11px;border-radius:8px;background:rgba(61,43,79,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:.55;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">
+  <span id="version-badge" title="Version" style="color:#E4D5F2"></span>
+  <span style="color:#E4D5F2" aria-hidden="true">·</span>
+  <a href="https://github.freaxnx01.ch/games/" style="color:#FFD9EE;text-decoration:none">More Games…</a>
+  <span style="color:#E4D5F2" aria-hidden="true">·</span>
+  <a href="https://github.com/freaxnx01/game-stylestar" target="_blank" rel="noopener" style="color:#FFD9EE;text-decoration:none">Source</a>
+  <span style="color:#E4D5F2" aria-hidden="true">·</span>
+  <a href="https://github.com/freaxnx01/game-stylestar/issues/new?title=%5BFeedback%5D%20game-stylestar&labels=feedback" target="_blank" rel="noopener" style="color:#FFD9EE;text-decoration:none">Feedback</a>
+  <span style="color:#E4D5F2" aria-hidden="true">·</span>
+  <a class="github-button" href="https://github.com/freaxnx01/game-stylestar" data-icon="octicon-star" data-size="small" data-show-count="true" aria-label="Star freaxnx01/game-stylestar on GitHub">Star</a>
+</nav>
+<script>
+  // Version badge → CHANGELOG. Text comes only from window.GAME_VERSION so
+  // version.js stays the single source (never hardcode the literal here).
+  (function () {
+    var el = document.getElementById('version-badge');
+    if (!el) return;
+    var a = document.createElement('a');
+    a.href = 'https://github.com/freaxnx01/game-stylestar/blob/main/CHANGELOG.md';
+    a.target = '_blank'; a.rel = 'noopener'; a.title = 'Changelog';
+    a.textContent = 'v' + (window.GAME_VERSION || '0.0.0');
+    a.style.color = 'inherit'; a.style.textDecoration = 'none';
+    el.appendChild(a);
+  })();
+</script>
+<script async defer crossorigin="anonymous" src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>
