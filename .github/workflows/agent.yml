@@ -19,4 +19,6 @@ jobs:
       runner-labels: '["ubuntu-latest"]'
       default-model: claude-sonnet-5
       pipeline-ref: v1
+      max-turns: 160             # v1 hat kein classify-turns.sh; das turns:*-Label
+      timeout-minutes: 90        # ist dort wirkungslos, der Default waere 30
       pre-preview: true          # v1 kennt ADR-009 noch nicht; neuer Name ab v2
