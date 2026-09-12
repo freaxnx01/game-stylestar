@@ -39,7 +39,7 @@
 
 ---
 
-## Task 1: Kleiderschrank in Core + Figur-Modul + Registry aufteilen
+### Task 1: Kleiderschrank in Core + Figur-Modul + Registry aufteilen
 
 Die Mädchen-Figur läuft danach durch die neue Struktur, sieht im Spiel identisch aus, und die Invarianten-Suite ist grün. Es entsteht noch keine zweite Figur.
 
@@ -401,7 +401,7 @@ git commit -m "refactor(wardrobe): split into core, per-character modules and a 
 
 ---
 
-## Task 2: `index.html` auf die Registry umstellen
+### Task 2: `index.html` auf die Registry umstellen
 
 Das Spiel liest alle Figur-Daten über die aktive Figur statt über das Modul. Sichtbar ändert sich nichts — es gibt weiterhin nur die Mädchen-Figur, aber der Zugriffspfad ist vorbereitet.
 
@@ -521,7 +521,7 @@ git commit -m "refactor(game): read wardrobe data through the active character"
 
 ---
 
-## Task 3: Fortschritt pro Figur mit Migration
+### Task 3: Fortschritt pro Figur mit Migration
 
 **Files:**
 - Create: `progress.js`
@@ -712,7 +712,7 @@ git commit -m "feat(progress): store progress per character and migrate the old 
 
 ---
 
-## Task 4: Jungen-Kleiderschrank
+### Task 4: Jungen-Kleiderschrank
 
 Ersetzt das Platzhalter-Modul aus Task 1 durch den vollständigen Inhalt und dreht die in Task 1 Step 7 eingeschränkte Test-Schleife zurück.
 
@@ -881,7 +881,7 @@ git commit -m "feat(wardrobe): add the boy character with its own wardrobe and t
 
 ---
 
-## Task 5: Figurwahl im Startscreen
+### Task 5: Figurwahl im Startscreen
 
 **Files:**
 - Modify: `index.html:40-44` (Startscreen-Markup)
