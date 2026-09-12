@@ -19,4 +19,4 @@ jobs:
       runner-labels: '["ubuntu-latest"]'
       default-model: claude-sonnet-5
       pipeline-ref: v1
-      ai-review-human-merge: true
+      pre-preview: true          # v1 kennt ADR-009 noch nicht; neuer Name ab v2
