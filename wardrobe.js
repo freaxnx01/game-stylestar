@@ -1,4 +1,4 @@
-// StyleStar – Kleiderschrank-Daten (SVG-Assets als Data-URIs)
+// StyleUp! – Kleiderschrank-Daten (SVG-Assets als Data-URIs)
 const FULL = '0 0 300 620';
 const uri = (inner, vb = FULL) => 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb + '">' + inner + '</svg>');
 export const BLANK = uri('', '0 0 1 1');

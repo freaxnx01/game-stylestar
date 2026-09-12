@@ -1,4 +1,4 @@
-# StyleStar – Ankleide-Puzzle
+# StyleUp! – Ankleide-Puzzle
 
 Ein Anziehspiel im Stil bunter Casual-Games: Du stylst eine Figur über sechs
 Ebenen (Haare, Kleider, Oberteile, Unterteile, Schuhe, Extras) passend zu einem

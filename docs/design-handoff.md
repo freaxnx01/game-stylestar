@@ -1,7 +1,7 @@
-# Handoff: StyleStar – Ankleide-Puzzle (Browserspiel)
+# Handoff: StyleUp! – Ankleide-Puzzle (Browserspiel)
 
 ## Overview
-StyleStar ist ein Anziehspiel/Ankleide-Puzzle für Mädchen ab ca. 11 Jahren im Stil bunter Poki-Casual-Games (Referenz: „Fashion Legends"). Die Spielerin stylt eine Figur über 6 Ebenen (Haare, Kleider, Oberteile, Unterteile, Schuhe, Extras) passend zu einem vorgegebenen Thema. Der Look wird mit Sternen und Likes bewertet; ab 2 Sternen wird das nächste von 8 Themen-Levels freigeschaltet. Fortschritt wird lokal gespeichert.
+StyleUp! ist ein Anziehspiel/Ankleide-Puzzle für Mädchen ab ca. 11 Jahren im Stil bunter Poki-Casual-Games (Referenz: „Fashion Legends"). Die Spielerin stylt eine Figur über 6 Ebenen (Haare, Kleider, Oberteile, Unterteile, Schuhe, Extras) passend zu einem vorgegebenen Thema. Der Look wird mit Sternen und Likes bewertet; ab 2 Sternen wird das nächste von 8 Themen-Levels freigeschaltet. Fortschritt wird lokal gespeichert.
 
 ## About the Design Files
 Die Dateien in diesem Paket sind **Design-Referenzen in HTML** — ein lauffähiger Prototyp, der Look und Verhalten zeigt, **kein Produktionscode zum direkten Übernehmen**. Aufgabe: Diese Designs in der Ziel-Codebasis mit deren etablierten Patterns und Libraries nachbauen (React, Vue, Svelte …). Existiert noch keine Codebasis, wähle das passendste Framework (empfohlen: React + Vite oder reines TypeScript/Canvas-freies DOM — das Spiel braucht keine Game-Engine) und implementiere die Designs dort.
@@ -31,7 +31,7 @@ Alle Layer sind absolut positionierte Elemente (`inset:0`) in einem Container mi
 - **Purpose**: Titel, Hautton-Wahl, Spielstart.
 - **Layout**: Flex-Zentrierung, `flex-wrap`, Gap `12px 56px`, Padding `32px 24px`. Links Textspalte (max 460px), rechts Figuren-Vorschau (`height:min(62vh,520px)`, aspect-ratio 300/620, sanfte Float-Animation).
 - **Components**:
-  - Logo „StyleStar": Fredoka 700, `clamp(52px,8vw,88px)`, Weiß, `text-shadow: 0 4px 0 #E85FA8, 0 10px 28px rgba(214,67,127,.35)`, letter-spacing 2px.
+  - Logo „StyleUp!": Fredoka 700, `clamp(52px,8vw,88px)`, Weiß, `text-shadow: 0 4px 0 #E85FA8, 0 10px 28px rgba(214,67,127,.35)`, letter-spacing 2px.
   - Untertitel-Pill: „Dein Ankleide-Studio – style Outfits zum Thema!", `rgba(255,255,255,.8)`, radius 999px, Padding 8×22, Nunito 800 17px, Farbe `#8A4FB8`.
   - Hautton-Reihe: Label „Dein Hautton:" (Nunito 800 15px `#7A5A96`) + 3 Kreis-Buttons 40×40, Farben `#F8CEAA` / `#DCA478` / `#9C6B43`, Border 3px (`#F45FA2` aktiv, sonst Weiß).
   - CTA „Los geht's!": Fredoka 600 26px Weiß, Gradient `linear-gradient(120deg,#FF5FA8,#B45FF4)`, radius 999px, Padding 16×52, Schatten `0 8px 22px rgba(214,67,127,.4)`, Hover `scale(1.05)`.
