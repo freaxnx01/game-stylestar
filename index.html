@@ -228,7 +228,7 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
 class Component extends DCLogic {
   state = {
     ready: false, screen: 'start', char: 'girl', skin: 0, levelIdx: 0, tab: 'hair',
-    mode: 'solo', dateIdx: 0, dateLooks: { girl: null, boy: null },
+    mode: 'solo', dateIdx: 0, dateLooks: { girl: null, boy: null }, soloChar: 'girl',
     worn: { hair: 'h1', top: 't2', bottom: 'b2', dress: null, shoes: 's2', extra: null },
     result: null, dateResult: null, likesShown: 0, progress: { v: 2, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } } }
   };
@@ -259,8 +259,21 @@ class Component extends DCLogic {
     this.setState({
       mode: 'date', screen: 'game', dateIdx: idx,
       dateLooks: { girl: null, boy: null },
+      // Die Runde endet beim Jungen. Ohne gemerkte Solo-Figur würde der
+      // Einzelmodus danach stillschweigend mit ihm weiterspielen.
+      soloChar: this.state.char,
       char: 'girl', result: null,
       ...this.R.switchCharacterState(this.W.CHARACTERS.girl),
+    });
+  }
+  // Zurück in den Einzelmodus: die Figur von vor dem Date wiederherstellen,
+  // samt ihrem Outfit — worn gehört sonst noch der Date-Figur.
+  leaveDate(screen) {
+    const s = this.state;
+    if (s.mode !== 'date') return this.setState({ screen, result: null });
+    this.setState({
+      mode: 'solo', screen, result: null, char: s.soloChar,
+      ...this.R.switchCharacterState(this.W.CHARACTERS[s.soloChar]),
     });
   }
   wear(cat, id) {
@@ -323,9 +336,9 @@ class Component extends DCLogic {
       levels: [], gridItems: [], tabs: [], skinBtns: [], hints: [], dateThemes: [], dateFigures: [], dateStars: [],
       stepLabel: '', finishLabel: 'Fertig – zeig deinen Look!', dateTitle: '',
       bigBtnHover: { transform: 'scale(1.05)' },
-      startGame: () => this.setState({ mode: 'solo', screen: 'levels' }),
+      startGame: () => this.leaveDate('levels'),
       startDate: () => this.setState({ screen: 'dateThemes' }),
-      toStart: () => this.setState({ mode: 'solo', screen: 'start' }),
+      toStart: () => this.leaveDate('start'),
       toLevels: () => this.setState({ screen: this.state.mode === 'date' ? 'dateThemes' : 'levels', result: null }),
       toDateThemes: () => this.setState({ screen: 'dateThemes', dateResult: null }),
     };
