@@ -3,8 +3,10 @@
 Ein Anziehspiel im Stil bunter Casual-Games: Du stylst eine Figur über sechs
 Ebenen (Haare, Kleider, Oberteile, Unterteile, Schuhe, Extras) passend zu einem
 vorgegebenen Thema. Der Look wird mit Sternen und Likes bewertet; ab 2 Sternen
-wird das nächste von 8 Themen-Levels freigeschaltet. Der Fortschritt wird lokal
-im Browser gespeichert.
+wird das nächste von 8 Themen-Levels freigeschaltet. Zur Wahl stehen ein
+Mädchen und ein Junge, jeweils mit eigenem Kleiderschrank und eigener
+Themenliste; der Fortschritt wird pro Figur getrennt lokal im Browser
+gespeichert.
 
 Play it: <https://github.freaxnx01.ch/game-stylestar/>
 

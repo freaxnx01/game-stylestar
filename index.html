@@ -37,6 +37,15 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
       <div style="display:flex;flex-direction:column;align-items:center;gap:20px;max-width:460px;">
         <div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(52px,8vw,88px);color:#fff;text-shadow:0 4px 0 #E85FA8,0 10px 28px rgba(214,67,127,.35);letter-spacing:2px;">StyleUp!</div>
         <div style="background:rgba(255,255,255,.8);border-radius:999px;padding:8px 22px;font-weight:800;font-size:17px;color:#8A4FB8;box-shadow:0 4px 14px rgba(138,79,184,.18);">Dein Ankleide-Studio – style Outfits zum Thema!</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+          <span style="font-weight:800;font-size:15px;color:#7A5A96;">Wer wird gestylt?</span>
+          <sc-for list="{{ charBtns }}" as="ch" hint-placeholder-count="2">
+            <button onClick="{{ ch.pick }}" style="{{ ch.style }}">
+              <div style="{{ ch.thumbStyle }}"></div>
+              <span>{{ ch.label }}</span>
+            </button>
+          </sc-for>
+        </div>
         <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
           <span style="font-weight:800;font-size:15px;color:#7A5A96;">Dein Hautton:</span>
           <sc-for list="{{ skinBtns }}" as="sk" hint-placeholder-count="3">
@@ -165,20 +174,40 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
 <script type="text/x-dc" data-dc-script data-props="{&quot;alleThemenOffen&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Spiel&quot;}, &quot;schwierig&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Spiel&quot;}}">
 class Component extends DCLogic {
   state = {
-    ready: false, screen: 'start', skin: 0, levelIdx: 0, tab: 'hair',
+    ready: false, screen: 'start', char: 'girl', skin: 0, levelIdx: 0, tab: 'hair',
     worn: { hair: 'h1', top: 't2', bottom: 'b2', dress: null, shoes: 's2', extra: null },
-    result: null, likesShown: 0, progress: { unlocked: 1, stars: {} }
+    result: null, likesShown: 0, progress: { v: 2, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } } }
   };
   componentDidMount() {
-    import('./wardrobe.js').then(m => {
-      this.W = m;
-      let p = null;
-      try { p = JSON.parse(localStorage.getItem('stylestar_v1')); } catch (e) {}
-      this.setState({ ready: true, progress: p && p.unlocked ? p : this.state.progress });
+    Promise.all([import('./wardrobe.js'), import('./progress.js')]).then(([w, p]) => {
+      this.W = w; this.P = p;
+      let raw = null;
+      try { raw = JSON.parse(localStorage.getItem(p.STORAGE_KEY)); } catch (e) {}
+      const migrated = p.migrate(raw);
+      this.save(migrated);
+      this.setState({
+        ready: true,
+        progress: migrated,
+        worn: { ...w.CHARACTERS[this.state.char].defaultWorn },
+      });
     });
   }
   componentWillUnmount() { clearInterval(this.likesTimer); }
-  save(p) { try { localStorage.setItem('stylestar_v1', JSON.stringify(p)); } catch (e) {} }
+  save(p) { try { localStorage.setItem(this.P.STORAGE_KEY, JSON.stringify(p)); } catch (e) {} }
+  // Ein Figurwechsel muss Outfit, Tab und Level mitnehmen: defaultWorn der alten
+  // Figur referenziert IDs, die es bei der neuen nicht gibt, und levelIdx zeigt
+  // sonst in eine fremde Themenliste.
+  pickChar(id) {
+    if (id === this.state.char) return;
+    const C = this.W.CHARACTERS[id];
+    this.setState({
+      char: id,
+      worn: { ...C.defaultWorn },
+      tab: C.tabs[0][0],
+      levelIdx: 0,
+      result: null,
+    });
+  }
   wear(cat, id) {
     const w = { ...this.state.worn };
     if (w[cat] === id) { if (cat !== 'hair') w[cat] = null; }
@@ -191,15 +220,18 @@ class Component extends DCLogic {
   }
   needStars() { return this.props.schwierig ? 3 : 2; }
   finish() {
-    const W = this.W, t = W.THEMES[this.state.levelIdx], w = this.state.worn;
-    const fits = id => !!(id && W.ITEM_BY_ID[id] && W.ITEM_BY_ID[id].tags.includes(t.id));
+    const C = this.W.CHARACTERS[this.state.char];
+    const t = C.THEMES[this.state.levelIdx], w = this.state.worn;
+    const fits = id => !!(id && C.ITEM_BY_ID[id] && C.ITEM_BY_ID[id].tags.includes(t.id));
     let pts = w.dress ? (fits(w.dress) ? 2 : 0) : (fits(w.top) ? 1 : 0) + (fits(w.bottom) ? 1 : 0);
     pts += (fits(w.shoes) ? 1 : 0) + (fits(w.extra) ? 1 : 0);
     const stars = pts >= 4 ? 3 : pts >= 2 ? 2 : 1;
     const likes = 40 + pts * 38 + Math.floor(Math.random() * 20);
-    const prog = { ...this.state.progress, stars: { ...this.state.progress.stars } };
-    prog.stars[t.id] = Math.max(prog.stars[t.id] || 0, stars);
-    if (stars >= this.needStars()) prog.unlocked = Math.max(prog.unlocked, this.state.levelIdx + 2);
+    const cur = this.state.progress.chars[this.state.char];
+    const mine = { unlocked: cur.unlocked, stars: { ...cur.stars } };
+    mine.stars[t.id] = Math.max(mine.stars[t.id] || 0, stars);
+    if (stars >= this.needStars()) mine.unlocked = Math.max(mine.unlocked, this.state.levelIdx + 2);
+    const prog = { v: 2, chars: { ...this.state.progress.chars, [this.state.char]: mine } };
     this.save(prog);
     this.setState({ result: { stars, likes }, likesShown: 0, progress: prog });
     clearInterval(this.likesTimer);
@@ -213,6 +245,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const s = this.state, W = this.W;
+    const C = W && W.CHARACTERS[s.char];
     const HIDE = { position: 'absolute', inset: '0' };
     const L = u => ({ position: 'absolute', inset: '0', backgroundImage: 'url("' + u + '")', backgroundSize: 'contain', backgroundPosition: 'center top', backgroundRepeat: 'no-repeat' });
     const vals = {
@@ -229,31 +262,43 @@ class Component extends DCLogic {
     vals.showLevels = s.screen === 'levels';
     vals.showGame = s.screen === 'game';
     vals.showResult = !!s.result;
-    const unlocked = this.props.alleThemenOffen ? 99 : s.progress.unlocked;
+    const mine = s.progress.chars[s.char];
+    const unlocked = this.props.alleThemenOffen ? 99 : mine.unlocked;
     this._dolls = this._dolls || {};
-    vals.dollL = L(this._dolls[s.skin] = this._dolls[s.skin] || W.dollUri(W.SKINS[s.skin]));
-    const hair = W.HAIR.find(h => h.id === s.worn.hair) || W.HAIR[0];
+    const dollKey = s.char + ':' + s.skin;
+    vals.dollL = L(this._dolls[dollKey] = this._dolls[dollKey] || C.dollUri(W.SKINS[s.skin]));
+    const hair = C.HAIR.find(h => h.id === s.worn.hair) || C.HAIR[0];
     vals.hairBackL = L(hair.backImg);
     vals.hairFrontL = L(hair.frontImg);
     for (const cat of ['top', 'bottom', 'dress', 'shoes', 'extra']) {
-      vals[cat + 'L'] = s.worn[cat] ? L(W.ITEM_BY_ID[s.worn[cat]].img) : HIDE;
+      vals[cat + 'L'] = s.worn[cat] ? L(C.ITEM_BY_ID[s.worn[cat]].img) : HIDE;
     }
     vals.skinBtns = W.SKINS.map((c, i) => ({
       style: { width: '40px', height: '40px', borderRadius: '50%', background: c, border: i === s.skin ? '3px solid #F45FA2' : '3px solid #fff', cursor: 'pointer', boxShadow: '0 3px 8px rgba(0,0,0,.15)' },
       pick: () => this.setState({ skin: i })
     }));
-    vals.levels = W.THEMES.map((t, i) => {
-      const locked = i >= unlocked, st = s.progress.stars[t.id] || 0;
+    vals.charBtns = W.CHAR_IDS.map(id => {
+      const ch = W.CHARACTERS[id], act = id === s.char;
+      const key = id + ':' + s.skin;
+      const doll = this._dolls[key] = this._dolls[key] || ch.dollUri(W.SKINS[s.skin]);
+      return {
+        label: ch.name,
+        thumbStyle: { width: '30px', height: '54px', backgroundImage: 'url("' + doll + '")', backgroundSize: 'contain', backgroundPosition: 'center top', backgroundRepeat: 'no-repeat' },
+        style: { display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '999px', border: act ? '3px solid #F45FA2' : '3px solid #fff', background: 'rgba(255,255,255,.8)', padding: '5px 16px 5px 8px', fontFamily: 'Nunito,sans-serif', fontWeight: 800, fontSize: '15px', color: '#7A5A96', cursor: 'pointer', boxShadow: '0 3px 8px rgba(0,0,0,.15)' },
+        pick: () => this.pickChar(id),
+      };
+    });
+    vals.levels = C.THEMES.map((t, i) => {
+      const locked = i >= unlocked, st = mine.stars[t.id] || 0;
       return {
         name: t.name, locked,
-        thumbStyle: { height: '105px', width: '100%', backgroundImage: 'url("' + W.ITEM_BY_ID[t.sig].thumb + '")', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' },
+        thumbStyle: { height: '105px', width: '100%', backgroundImage: 'url("' + C.ITEM_BY_ID[t.sig].thumb + '")', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' },
         starCols: [1, 2, 3].map(n => n <= st ? '#FFC531' : '#E4DCEF'),
         cardStyle: { position: 'relative', background: '#fff', border: 'none', borderRadius: '24px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: locked ? 'default' : 'pointer', boxShadow: '0 8px 22px rgba(138,79,184,.16)', fontFamily: 'inherit' },
         open: () => { if (!locked) this.setState({ screen: 'game', levelIdx: i, result: null }); }
       };
     });
-    const tabDefs = [['hair', 'Haare'], ['dress', 'Kleider'], ['top', 'Oben'], ['bottom', 'Unten'], ['shoes', 'Schuhe'], ['extra', 'Extras']];
-    vals.tabs = tabDefs.map(([id, label]) => {
+    vals.tabs = C.tabs.map(([id, label]) => {
       const act = s.tab === id;
       return {
         label,
@@ -261,7 +306,7 @@ class Component extends DCLogic {
         pick: () => this.setState({ tab: id })
       };
     });
-    const list = s.tab === 'hair' ? W.HAIR : W.ITEMS[s.tab];
+    const list = s.tab === 'hair' ? C.HAIR : C.ITEMS[s.tab];
     vals.gridItems = list.map(it => {
       const sel = s.worn[s.tab] === it.id;
       return {
@@ -272,11 +317,11 @@ class Component extends DCLogic {
     });
     vals.canRemove = s.tab !== 'hair' && !!s.worn[s.tab];
     vals.removeCurrent = () => this.wear(s.tab, s.worn[s.tab]);
-    const theme = W.THEMES[s.levelIdx];
+    const theme = C.THEMES[s.levelIdx];
     vals.themeName = theme.name;
     vals.hints = theme.hints;
     vals.levelNo = s.levelIdx + 1;
-    vals.levelCount = W.THEMES.length;
+    vals.levelCount = C.THEMES.length;
     vals.finish = () => this.finish();
     if (s.result) {
       vals.resultTitle = s.result.stars === 3 ? 'Mega! Perfekter Look!' : s.result.stars === 2 ? 'Super Style!' : 'Hmm, fast …';
@@ -284,7 +329,7 @@ class Component extends DCLogic {
       vals.likesShown = s.likesShown;
       vals.showTip = s.result.stars < this.needStars();
       vals.hintText = theme.hints.join(', ');
-      vals.canNext = s.result.stars >= this.needStars() && s.levelIdx + 1 < W.THEMES.length;
+      vals.canNext = s.result.stars >= this.needStars() && s.levelIdx + 1 < C.THEMES.length;
       vals.again = () => this.setState({ result: null });
       vals.nextLevel = () => this.setState({ result: null, levelIdx: s.levelIdx + 1 });
     }
