@@ -179,8 +179,8 @@ class Component extends DCLogic {
     result: null, likesShown: 0, progress: { v: 2, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } } }
   };
   componentDidMount() {
-    Promise.all([import('./wardrobe.js'), import('./progress.js')]).then(([w, p]) => {
-      this.W = w; this.P = p;
+    Promise.all([import('./wardrobe.js'), import('./progress.js'), import('./game-rules.js')]).then(([w, p, r]) => {
+      this.W = w; this.P = p; this.R = r;
       let raw = null;
       try { raw = JSON.parse(localStorage.getItem(p.STORAGE_KEY)); } catch (e) {}
       const migrated = p.migrate(raw, w.CHAR_IDS);
@@ -194,19 +194,9 @@ class Component extends DCLogic {
   }
   componentWillUnmount() { clearInterval(this.likesTimer); }
   save(p) { try { localStorage.setItem(this.P.STORAGE_KEY, JSON.stringify(p)); } catch (e) {} }
-  // Ein Figurwechsel muss Outfit, Tab und Level mitnehmen: defaultWorn der alten
-  // Figur referenziert IDs, die es bei der neuen nicht gibt, und levelIdx zeigt
-  // sonst in eine fremde Themenliste.
   pickChar(id) {
     if (id === this.state.char) return;
-    const C = this.W.CHARACTERS[id];
-    this.setState({
-      char: id,
-      worn: { ...C.defaultWorn },
-      tab: C.tabs[0][0],
-      levelIdx: 0,
-      result: null,
-    });
+    this.setState({ char: id, ...this.R.switchCharacterState(this.W.CHARACTERS[id]) });
   }
   wear(cat, id) {
     const w = { ...this.state.worn };
@@ -221,17 +211,11 @@ class Component extends DCLogic {
   needStars() { return this.props.schwierig ? 3 : 2; }
   finish() {
     const C = this.W.CHARACTERS[this.state.char];
-    const t = C.THEMES[this.state.levelIdx], w = this.state.worn;
-    const fits = id => !!(id && C.ITEM_BY_ID[id] && C.ITEM_BY_ID[id].tags.includes(t.id));
-    let pts = w.dress ? (fits(w.dress) ? 2 : 0) : (fits(w.top) ? 1 : 0) + (fits(w.bottom) ? 1 : 0);
-    pts += (fits(w.shoes) ? 1 : 0) + (fits(w.extra) ? 1 : 0);
-    const stars = pts >= 4 ? 3 : pts >= 2 ? 2 : 1;
+    const t = C.THEMES[this.state.levelIdx];
+    const { pts, stars } = this.R.scoreLook(C, t, this.state.worn);
     const likes = 40 + pts * 38 + Math.floor(Math.random() * 20);
-    const cur = this.state.progress.chars[this.state.char];
-    const mine = { unlocked: cur.unlocked, stars: { ...cur.stars } };
-    mine.stars[t.id] = Math.max(mine.stars[t.id] || 0, stars);
-    if (stars >= this.needStars()) mine.unlocked = Math.max(mine.unlocked, this.state.levelIdx + 2);
-    const prog = { v: 2, chars: { ...this.state.progress.chars, [this.state.char]: mine } };
+    const prog = this.R.recordResult(this.state.progress, this.state.char, t.id,
+                                     stars, this.state.levelIdx, this.needStars());
     this.save(prog);
     this.setState({ result: { stars, likes }, likesShown: 0, progress: prog });
     clearInterval(this.likesTimer);
