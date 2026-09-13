@@ -127,7 +127,7 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
             <span style="background:linear-gradient(120deg,#FFE1EF,#EFE1FF);border-radius:999px;padding:6px 14px;font-weight:800;font-size:13px;color:#B0489B;">{{ h }}</span>
           </sc-for>
         </div>
-        <div style="margin-left:auto;background:rgba(255,255,255,.85);border-radius:999px;padding:9px 18px;font-weight:800;font-size:14px;color:#7A5A96;">Thema {{ levelNo }} / {{ levelCount }}</div>
+        <div style="margin-left:auto;background:rgba(255,255,255,.85);border-radius:999px;padding:9px 18px;font-weight:800;font-size:14px;color:#7A5A96;">{{ stepLabel }}</div>
       </div>
       <div style="flex:1;min-height:0;display:flex;gap:16px;padding:0 20px 18px;flex-wrap:wrap;">
         <div style="flex:1;min-width:250px;min-height:300px;display:flex;align-items:center;justify-content:center;position:relative;">
@@ -161,7 +161,7 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
               </button>
             </sc-for>
           </div>
-          <button onClick="{{ finish }}" style-hover="{{ bigBtnHover }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:23px;color:#fff;background:linear-gradient(120deg,#FF5FA8,#B45FF4);border:none;border-radius:999px;padding:13px 20px;cursor:pointer;box-shadow:0 8px 20px rgba(214,67,127,.4);transition:transform .15s;">Fertig – zeig deinen Look!</button>
+          <button onClick="{{ finish }}" style-hover="{{ bigBtnHover }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:23px;color:#fff;background:linear-gradient(120deg,#FF5FA8,#B45FF4);border:none;border-radius:999px;padding:13px 20px;cursor:pointer;box-shadow:0 8px 20px rgba(214,67,127,.4);transition:transform .15s;">{{ finishLabel }}</button>
         </div>
       </div>
     </div>
@@ -201,7 +201,7 @@ class Component extends DCLogic {
     ready: false, screen: 'start', char: 'girl', skin: 0, levelIdx: 0, tab: 'hair',
     mode: 'solo', dateIdx: 0, dateLooks: { girl: null, boy: null },
     worn: { hair: 'h1', top: 't2', bottom: 'b2', dress: null, shoes: 's2', extra: null },
-    result: null, likesShown: 0, progress: { v: 2, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } } }
+    result: null, dateResult: null, likesShown: 0, progress: { v: 2, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } } }
   };
   componentDidMount() {
     Promise.all([import('./wardrobe.js'), import('./progress.js'), import('./game-rules.js')]).then(([w, p, r]) => {
@@ -254,6 +254,25 @@ class Component extends DCLogic {
                                      stars, this.state.levelIdx, this.needStars());
     this.save(prog);
     this.setState({ result: { stars, likes }, likesShown: 0, progress: prog });
+    this.startLikes(likes);
+  }
+  // Schritt 1 sichert das Outfit des Mädchens und schaltet auf den Jungen.
+  // Schritt 2 bewertet beide Looks am selben Thema und speichert das Ergebnis.
+  dateNext() {
+    const looks = { ...this.state.dateLooks, [this.state.char]: { ...this.state.worn } };
+    if (this.state.char === 'girl') {
+      this.setState({ dateLooks: looks, char: 'boy', ...this.R.switchCharacterState(this.W.CHARACTERS.boy) });
+      return;
+    }
+    const W = this.W, t = W.DATE_THEMES[this.state.dateIdx];
+    const sc = this.R.scoreDate(W.CHARACTERS.girl, W.CHARACTERS.boy, t, looks.girl, looks.boy);
+    const likes = 60 + sc.pts * 34 + Math.floor(Math.random() * 20);
+    const prog = this.R.recordDateResult(this.state.progress, t.id, sc.stars);
+    this.save(prog);
+    this.setState({ dateLooks: looks, screen: 'dateResult', progress: prog, dateResult: { ...sc, likes }, likesShown: 0 });
+    this.startLikes(likes);
+  }
+  startLikes(likes) {
     clearInterval(this.likesTimer);
     this.likesTimer = setInterval(() => {
       this.setState(s => {
@@ -278,7 +297,7 @@ class Component extends DCLogic {
       startGame: () => this.setState({ mode: 'solo', screen: 'levels' }),
       startDate: () => this.setState({ screen: 'dateThemes' }),
       toStart: () => this.setState({ mode: 'solo', screen: 'start' }),
-      toLevels: () => this.setState({ screen: 'levels', result: null }),
+      toLevels: () => this.setState({ screen: this.state.mode === 'date' ? 'dateThemes' : 'levels', result: null }),
     };
     if (!s.ready) return vals;
     vals.showStart = s.screen === 'start';
@@ -364,7 +383,14 @@ class Component extends DCLogic {
     vals.hints = theme.hints;
     vals.levelNo = s.levelIdx + 1;
     vals.levelCount = C.THEMES.length;
-    vals.finish = () => this.finish();
+    const dateStep = s.char === 'girl' ? 1 : 2;
+    vals.stepLabel = s.mode === 'date'
+      ? 'Schritt ' + dateStep + ' von 2 — style ' + (dateStep === 1 ? 'das Mädchen' : 'den Jungen')
+      : 'Thema ' + (s.levelIdx + 1) + ' / ' + C.THEMES.length;
+    vals.finishLabel = s.mode === 'date' && dateStep === 1
+      ? 'Weiter'
+      : s.mode === 'date' ? 'Fertig – zeigt euer Date!' : 'Fertig – zeig deinen Look!';
+    vals.finish = () => (s.mode === 'date' ? this.dateNext() : this.finish());
     if (s.result) {
       vals.resultTitle = s.result.stars === 3 ? 'Mega! Perfekter Look!' : s.result.stars === 2 ? 'Super Style!' : 'Hmm, fast …';
       vals.resultStars = [1, 2, 3].map(n => n <= s.result.stars ? '#FFC531' : '#E4DCEF');
