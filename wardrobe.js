@@ -5,4 +5,5 @@ import { CHARACTER as boy } from './wardrobe-boy.js';
 export { SKINS } from './wardrobe-core.js';
 
 export const CHARACTERS = { girl, boy };
-export const CHAR_IDS = ['girl', 'boy'];
+// Aus der Registry abgeleitet, damit die Liste nicht von ihr abweichen kann.
+export const CHAR_IDS = Object.keys(CHARACTERS);
