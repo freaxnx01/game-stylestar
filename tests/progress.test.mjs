@@ -10,24 +10,50 @@ test('der Storage-Key bleibt stylestar_v1', () => {
 
 test('blankProgress gibt beiden Figuren einen eigenen leeren Stand', () => {
   const p = blankProgress(IDS);
-  assert.equal(p.v, 2);
+  assert.equal(p.v, 3);
   assert.deepEqual(p.chars.girl, { unlocked: 1, stars: {} });
   assert.deepEqual(p.chars.boy, { unlocked: 1, stars: {} });
   p.chars.girl.stars.pyjama = 3;
   assert.deepEqual(p.chars.boy.stars, {}, 'die Figuren dürfen sich kein Objekt teilen');
 });
 
-test('migrate übernimmt ein v2-Objekt unverändert', () => {
-  const src = { v: 2, chars: { girl: { unlocked: 5, stars: { ball: 3 } }, boy: { unlocked: 2, stars: {} } } };
+test('migrate übernimmt ein v3-Objekt unverändert', () => {
+  const src = { v: 3, chars: { girl: { unlocked: 5, stars: { ball: 3 } }, boy: { unlocked: 2, stars: {} } }, dates: { stars: {} } };
   assert.deepEqual(migrate(src, IDS), src);
 });
 
 test('migrate hebt das alte Flachformat auf das Mädchen', () => {
   const old = { unlocked: 4, stars: { pyjama: 3, schule: 2 } };
   const p = migrate(old, IDS);
-  assert.equal(p.v, 2);
+  assert.equal(p.v, 3);
   assert.deepEqual(p.chars.girl, { unlocked: 4, stars: { pyjama: 3, schule: 2 } });
   assert.deepEqual(p.chars.boy, { unlocked: 1, stars: {} });
+  assert.deepEqual(p.dates, { stars: {} });
+});
+
+test('blankProgress ist v3 mit leerem Date-Zweig', () => {
+  const p = blankProgress(IDS);
+  assert.equal(p.v, 3);
+  assert.deepEqual(p.dates, { stars: {} });
+});
+
+test('v2 wird auf v3 gehoben, die Figuren bleiben', () => {
+  const p = migrate({ v: 2, chars: { girl: { unlocked: 5, stars: { ball: 3 } }, boy: { unlocked: 2, stars: {} } } }, IDS);
+  assert.equal(p.v, 3);
+  assert.deepEqual(p.chars.girl, { unlocked: 5, stars: { ball: 3 } });
+  assert.deepEqual(p.dates, { stars: {} });
+});
+
+test('v3 bleibt erhalten, inklusive Date-Sternen', () => {
+  const src = { v: 3, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } }, dates: { stars: { kino: 3 } } };
+  assert.deepEqual(migrate(src, IDS), src);
+});
+
+test('ein kaputter Date-Zweig wird ersetzt, nicht übernommen', () => {
+  for (const bad of [null, 'nope', 42, {}, { stars: 'nein' }]) {
+    const p = migrate({ v: 3, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } }, dates: bad }, IDS);
+    assert.deepEqual(p.dates, { stars: {} }, `Eingabe ${JSON.stringify(bad)}`);
+  }
 });
 
 test('migrate füllt eine im v2-Objekt fehlende Figur auf', () => {

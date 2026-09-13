@@ -129,3 +129,9 @@ test('recordDateResult mutiert nicht und lässt die Figuren in Ruhe', () => {
 test('ein schlechteres Date senkt den Bestwert nicht', () => {
   assert.equal(recordDateResult(DPROG(), 'kino', 1).dates.stars.kino, 2);
 });
+
+test('recordDateResult trägt ein neues Thema ein, ohne alte zu verdrängen', () => {
+  const p = recordDateResult(DPROG(), 'herbst', 2);
+  assert.equal(p.dates.stars.kino, 2);
+  assert.equal(p.dates.stars.herbst, 2);
+});
