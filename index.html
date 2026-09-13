@@ -193,6 +193,35 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
       </div>
     </div>
   </sc-if>
+
+  <sc-if value="{{ showDateResult }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Date" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:28px 20px;position:relative;">
+      <div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(26px,4vw,38px);color:#fff;text-shadow:0 3px 0 #E85FA8,0 8px 20px rgba(214,67,127,.3);">{{ dateTitle }}</div>
+      <div style="display:flex;gap:clamp(8px,4vw,48px);align-items:flex-end;flex-wrap:wrap;justify-content:center;">
+        <sc-for list="{{ dateFigures }}" as="fig" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="{{ fig.frame }}">
+              <sc-for list="{{ fig.layers }}" as="ly" hint-placeholder-count="8">
+                <div style="{{ ly }}"></div>
+              </sc-for>
+            </div>
+            <div style="background:rgba(255,255,255,.85);border-radius:999px;padding:6px 16px;font-weight:800;font-size:14px;color:#7A5A96;">{{ fig.label }} · {{ fig.pts }} / 4</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <sc-for list="{{ dateStars }}" as="ds" hint-placeholder-count="3">
+          <svg width="46" height="46" viewBox="0 0 24 24"><path d="M12 2l2.9 6.2 6.8.8-5 4.6 1.3 6.7L12 17l-6 3.3 1.3-6.7-5-4.6 6.8-.8Z" fill="{{ ds }}"></path></svg>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,#FFE1EF,#EFE1FF);border-radius:999px;padding:10px 26px;">
+        <svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 5.5-8 11-8 11Z" fill="#F4436B"></path></svg>
+        <span style="font-family:Fredoka,sans-serif;font-weight:600;font-size:24px;color:#3D2B4F;">{{ likesShown }} Likes</span>
+      </div>
+      <button onClick="{{ toDateThemes }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:18px;color:#fff;background:linear-gradient(120deg,#FF5FA8,#B45FF4);border:none;border-radius:999px;padding:12px 30px;cursor:pointer;box-shadow:0 6px 16px rgba(214,67,127,.35);">Nächstes Date</button>
+      <button onClick="{{ toStart }}" style="font-family:Nunito,sans-serif;font-weight:800;font-size:14px;color:#8A79A3;background:transparent;border:none;cursor:pointer;text-decoration:underline;">Zurück zum Start</button>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;alleThemenOffen&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Spiel&quot;}, &quot;schwierig&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Spiel&quot;}}">
@@ -291,13 +320,14 @@ class Component extends DCLogic {
       showLoading: !s.ready, showStart: false, showLevels: false, showGame: false, showResult: false,
       showDateThemes: false, showDateResult: false,
       dollL: HIDE, hairBackL: HIDE, hairFrontL: HIDE, topL: HIDE, bottomL: HIDE, dressL: HIDE, shoesL: HIDE, extraL: HIDE,
-      levels: [], gridItems: [], tabs: [], skinBtns: [], hints: [], dateThemes: [], dateFigures: [],
-      stepLabel: '', finishLabel: 'Fertig – zeig deinen Look!',
+      levels: [], gridItems: [], tabs: [], skinBtns: [], hints: [], dateThemes: [], dateFigures: [], dateStars: [],
+      stepLabel: '', finishLabel: 'Fertig – zeig deinen Look!', dateTitle: '',
       bigBtnHover: { transform: 'scale(1.05)' },
       startGame: () => this.setState({ mode: 'solo', screen: 'levels' }),
       startDate: () => this.setState({ screen: 'dateThemes' }),
       toStart: () => this.setState({ mode: 'solo', screen: 'start' }),
       toLevels: () => this.setState({ screen: this.state.mode === 'date' ? 'dateThemes' : 'levels', result: null }),
+      toDateThemes: () => this.setState({ screen: 'dateThemes', dateResult: null }),
     };
     if (!s.ready) return vals;
     vals.showStart = s.screen === 'start';
@@ -358,6 +388,32 @@ class Component extends DCLogic {
         open: () => this.startDateRound(i),
       };
     });
+    if (s.screen === 'dateResult' && s.dateResult) {
+      const layerOrder = ['hairBack', 'doll', 'shoes', 'bottom', 'top', 'dress', 'hairFront', 'extra'];
+      vals.dateFigures = [['girl', 'Mädchen', s.dateResult.girlPts], ['boy', 'Junge', s.dateResult.boyPts]]
+        .map(([id, label, pts]) => {
+          const FC = W.CHARACTERS[id], look = s.dateLooks[id] || FC.defaultWorn;
+          const key = id + ':' + s.skin;
+          const doll = this._dolls[key] = this._dolls[key] || FC.dollUri(W.SKINS[s.skin]);
+          const hr = FC.HAIR.find(h => h.id === look.hair) || FC.HAIR[0];
+          const src = {
+            hairBack: hr.backImg, doll, hairFront: hr.frontImg,
+            top: look.top && FC.ITEM_BY_ID[look.top].img,
+            bottom: look.bottom && FC.ITEM_BY_ID[look.bottom].img,
+            dress: look.dress && FC.ITEM_BY_ID[look.dress].img,
+            shoes: look.shoes && FC.ITEM_BY_ID[look.shoes].img,
+            extra: look.extra && FC.ITEM_BY_ID[look.extra].img,
+          };
+          return {
+            label, pts,
+            frame: { position: 'relative', height: 'min(42vh,320px)', aspectRatio: '300/620' },
+            layers: layerOrder.map(k => src[k] ? L(src[k]) : HIDE),
+          };
+        });
+      vals.dateStars = [1, 2, 3].map(n => n <= s.dateResult.stars ? '#FFC531' : '#E4DCEF');
+      vals.dateTitle = s.dateResult.stars === 3 ? 'Traum-Date!' : s.dateResult.stars === 2 ? 'Schönes Date!' : 'Hmm, das passt noch nicht …';
+      vals.likesShown = s.likesShown;
+    }
     vals.tabs = C.tabs.map(([id, label]) => {
       const act = s.tab === id;
       return {
