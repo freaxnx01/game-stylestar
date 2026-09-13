@@ -23,11 +23,14 @@ test('ein passendes Kleid ersetzt Oberteil und Unterteil', () => {
   assert.deepEqual(mitZweiteiler, { pts: 4, stars: 3 });
 });
 
-test('ein unpassendes Kleid gibt null Punkte, auch wenn Oberteil passt', () => {
+test('ein getragenes Kleid verdrängt Oberteil und Unterteil aus der Wertung', () => {
   const r = scoreLook(CHAR, THEME, { ...leer, dress: 'd1', top: 't1', bottom: 'b1' });
-  assert.equal(r.pts, 2, 'd1 passt (2), top/bottom zählen im Kleid-Zweig nicht');
-  const r2 = scoreLook(CHAR, { id: 'schule' }, { ...leer, dress: 'd1', top: 't2', bottom: 'b2' });
-  assert.equal(r2.pts, 0);
+  assert.equal(r.pts, 2, 'd1 passt (2); top/bottom zählen im Kleid-Zweig gar nicht mit');
+});
+
+test('ein unpassendes Kleid gibt null Punkte, auch wenn Oberteil und Unterteil passen', () => {
+  const r = scoreLook(CHAR, { id: 'schule' }, { ...leer, dress: 'd1', top: 't2', bottom: 'b2' });
+  assert.equal(r.pts, 0, 'd1 passt nicht zu schule, und t2/b2 werden verdrängt');
 });
 
 test('die drei Sterne-Schwellen', () => {
