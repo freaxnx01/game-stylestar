@@ -135,3 +135,15 @@ test('recordDateResult trägt ein neues Thema ein, ohne alte zu verdrängen', ()
   assert.equal(p.dates.stars.kino, 2);
   assert.equal(p.dates.stars.herbst, 2);
 });
+
+test('recordResult erhält den Date-Zweig und die Formatversion', () => {
+  const vorher = {
+    v: 3,
+    chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } },
+    dates: { stars: { kino: 3 } },
+  };
+  const p = recordResult(vorher, 'girl', 'pyjama', 3, 0, 2);
+  assert.equal(p.v, 3, 'darf nicht auf v2 zurückfallen');
+  assert.deepEqual(p.dates, { stars: { kino: 3 } }, 'Date-Sterne dürfen nicht verloren gehen');
+  assert.equal(p.chars.girl.stars.pyjama, 3);
+});

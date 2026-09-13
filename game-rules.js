@@ -20,7 +20,9 @@ export function recordResult(progress, charId, themeId, stars, levelIdx, needSta
   const mine = { unlocked: cur.unlocked, stars: { ...cur.stars } };
   mine.stars[themeId] = Math.max(mine.stars[themeId] || 0, stars);
   if (stars >= needStars) mine.unlocked = Math.max(mine.unlocked, levelIdx + 2);
-  return { v: 2, chars: { ...progress.chars, [charId]: mine } };
+  // ...progress statt eines Literals: die Funktion besitzt weder die
+  // Formatversion noch den Date-Zweig und darf beides nicht verlieren.
+  return { ...progress, chars: { ...progress.chars, [charId]: mine } };
 }
 
 // Welcher Zustand gilt, nachdem auf eine andere Figur gewechselt wurde?
