@@ -34,3 +34,23 @@ export function switchCharacterState(character) {
     result: null,
   };
 }
+
+// Ein Date wird über beide Looks am selben Thema gemessen: je 0-4 Punkte aus
+// scoreLook, zusammen 0-8. Die Einzelwerte kommen mit zurück, damit die Szene
+// zeigen kann, woran es lag. Acht von acht wäre als Bestnote zu hart — sieben
+// lässt genau einen Patzer zu.
+export function scoreDate(girlChar, boyChar, theme, girlWorn, boyWorn) {
+  const g = scoreLook(girlChar, theme, girlWorn);
+  const b = scoreLook(boyChar, theme, boyWorn);
+  const pts = g.pts + b.pts;
+  const stars = pts >= 7 ? 3 : pts >= 4 ? 2 : 1;
+  return { girlPts: g.pts, boyPts: b.pts, pts, stars };
+}
+
+// Date-Ergebnisse liegen neben den Figuren, nicht in ihnen: kein unlocked,
+// nur der Sterne-Bestwert je Thema.
+export function recordDateResult(progress, themeId, stars) {
+  const stern = { ...progress.dates.stars };
+  stern[themeId] = Math.max(stern[themeId] || 0, stars);
+  return { ...progress, dates: { stars: stern } };
+}
