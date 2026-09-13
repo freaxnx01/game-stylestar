@@ -183,7 +183,7 @@ class Component extends DCLogic {
       this.W = w; this.P = p;
       let raw = null;
       try { raw = JSON.parse(localStorage.getItem(p.STORAGE_KEY)); } catch (e) {}
-      const migrated = p.migrate(raw);
+      const migrated = p.migrate(raw, w.CHAR_IDS);
       this.save(migrated);
       this.setState({
         ready: true,
