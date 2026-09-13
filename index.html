@@ -53,6 +53,7 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
           </sc-for>
         </div>
         <button onClick="{{ startGame }}" style-hover="{{ bigBtnHover }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:26px;color:#fff;background:linear-gradient(120deg,#FF5FA8,#B45FF4);border:none;border-radius:999px;padding:16px 52px;cursor:pointer;box-shadow:0 8px 22px rgba(214,67,127,.4);transition:transform .15s;">Los geht's!</button>
+        <button onClick="{{ startDate }}" style-hover="{{ bigBtnHover }}" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:19px;color:#8A4FB8;background:rgba(255,255,255,.8);border:none;border-radius:999px;padding:11px 34px;cursor:pointer;box-shadow:0 4px 14px rgba(138,79,184,.18);transition:transform .15s;">Date-Modus</button>
       </div>
       <div style="position:relative;height:min(62vh,520px);aspect-ratio:300/620;animation:floaty 7s ease-in-out infinite;">
         <div style="{{ hairBackL }}"></div>
@@ -86,6 +87,29 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
                 <div style="font-weight:800;font-size:12px;color:#8A79A3;padding:0 10px;">Meistere das Thema davor</div>
               </div>
             </sc-if>
+          </button>
+        </sc-for>
+      </div>
+      <button onClick="{{ toStart }}" style="background:rgba(255,255,255,.7);border:none;border-radius:999px;padding:10px 24px;font-family:Nunito,sans-serif;font-weight:800;font-size:15px;color:#8A4FB8;cursor:pointer;">Zurück zum Start</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showDateThemes }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Date-Themenwahl" style="flex:1;padding:36px 24px;display:flex;flex-direction:column;align-items:center;gap:26px;position:relative;">
+      <div style="font-family:Fredoka,sans-serif;font-weight:600;font-size:clamp(30px,4.5vw,44px);color:#fff;text-shadow:0 3px 0 #B476E0,0 8px 20px rgba(138,79,184,.3);">Wohin geht das Date?</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;width:min(920px,100%);">
+        <sc-for list="{{ dateThemes }}" as="dt" hint-placeholder-count="4">
+          <button onClick="{{ dt.open }}" style="{{ dt.cardStyle }}">
+            <div style="display:flex;gap:4px;justify-content:center;width:100%;">
+              <div style="{{ dt.thumbGirl }}"></div>
+              <div style="{{ dt.thumbBoy }}"></div>
+            </div>
+            <div style="font-family:Fredoka,sans-serif;font-weight:600;font-size:17px;color:#3D2B4F;">{{ dt.name }}</div>
+            <div style="display:flex;gap:3px;">
+              <sc-for list="{{ dt.starCols }}" as="dstc" hint-placeholder-count="3">
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2l2.9 6.2 6.8.8-5 4.6 1.3 6.7L12 17l-6 3.3 1.3-6.7-5-4.6 6.8-.8Z" fill="{{ dstc }}"></path></svg>
+              </sc-for>
+            </div>
           </button>
         </sc-for>
       </div>
@@ -175,6 +199,7 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
 class Component extends DCLogic {
   state = {
     ready: false, screen: 'start', char: 'girl', skin: 0, levelIdx: 0, tab: 'hair',
+    mode: 'solo', dateIdx: 0, dateLooks: { girl: null, boy: null },
     worn: { hair: 'h1', top: 't2', bottom: 'b2', dress: null, shoes: 's2', extra: null },
     result: null, likesShown: 0, progress: { v: 2, chars: { girl: { unlocked: 1, stars: {} }, boy: { unlocked: 1, stars: {} } } }
   };
@@ -197,6 +222,17 @@ class Component extends DCLogic {
   pickChar(id) {
     if (id === this.state.char) return;
     this.setState({ char: id, ...this.R.switchCharacterState(this.W.CHARACTERS[id]) });
+  }
+  // Eine Date-Runde beginnt immer beim Mädchen, mit leerem Gedächtnis für
+  // beide Outfits. switchCharacterState liefert Outfit, Tab und Reset —
+  // dieselbe Funktion, die auch der Figurwechsel benutzt.
+  startDateRound(idx) {
+    this.setState({
+      mode: 'date', screen: 'game', dateIdx: idx,
+      dateLooks: { girl: null, boy: null },
+      char: 'girl', result: null,
+      ...this.R.switchCharacterState(this.W.CHARACTERS.girl),
+    });
   }
   wear(cat, id) {
     const w = { ...this.state.worn };
@@ -234,11 +270,14 @@ class Component extends DCLogic {
     const L = u => ({ position: 'absolute', inset: '0', backgroundImage: 'url("' + u + '")', backgroundSize: 'contain', backgroundPosition: 'center top', backgroundRepeat: 'no-repeat' });
     const vals = {
       showLoading: !s.ready, showStart: false, showLevels: false, showGame: false, showResult: false,
+      showDateThemes: false, showDateResult: false,
       dollL: HIDE, hairBackL: HIDE, hairFrontL: HIDE, topL: HIDE, bottomL: HIDE, dressL: HIDE, shoesL: HIDE, extraL: HIDE,
-      levels: [], gridItems: [], tabs: [], skinBtns: [], hints: [],
+      levels: [], gridItems: [], tabs: [], skinBtns: [], hints: [], dateThemes: [], dateFigures: [],
+      stepLabel: '', finishLabel: 'Fertig – zeig deinen Look!',
       bigBtnHover: { transform: 'scale(1.05)' },
-      startGame: () => this.setState({ screen: 'levels' }),
-      toStart: () => this.setState({ screen: 'start' }),
+      startGame: () => this.setState({ mode: 'solo', screen: 'levels' }),
+      startDate: () => this.setState({ screen: 'dateThemes' }),
+      toStart: () => this.setState({ mode: 'solo', screen: 'start' }),
       toLevels: () => this.setState({ screen: 'levels', result: null }),
     };
     if (!s.ready) return vals;
@@ -246,6 +285,8 @@ class Component extends DCLogic {
     vals.showLevels = s.screen === 'levels';
     vals.showGame = s.screen === 'game';
     vals.showResult = !!s.result;
+    vals.showDateThemes = s.screen === 'dateThemes';
+    vals.showDateResult = s.screen === 'dateResult';
     const mine = s.progress.chars[s.char];
     const unlocked = this.props.alleThemenOffen ? 99 : mine.unlocked;
     this._dolls = this._dolls || {};
@@ -282,6 +323,22 @@ class Component extends DCLogic {
         open: () => { if (!locked) this.setState({ screen: 'game', levelIdx: i, result: null }); }
       };
     });
+    const dstars = s.progress.dates.stars;
+    vals.dateThemes = W.DATE_THEMES.map((t, i) => {
+      const st = dstars[t.id] || 0;
+      const thumb = (charId, id) => ({
+        height: '84px', flex: '1', backgroundImage: 'url("' + W.CHARACTERS[charId].ITEM_BY_ID[id].thumb + '")',
+        backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+      });
+      return {
+        name: t.name,
+        thumbGirl: thumb('girl', t.sig.girl),
+        thumbBoy: thumb('boy', t.sig.boy),
+        starCols: [1, 2, 3].map(n => n <= st ? '#FFC531' : '#E4DCEF'),
+        cardStyle: { position: 'relative', background: '#fff', border: 'none', borderRadius: '24px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 8px 22px rgba(138,79,184,.16)', fontFamily: 'inherit' },
+        open: () => this.startDateRound(i),
+      };
+    });
     vals.tabs = C.tabs.map(([id, label]) => {
       const act = s.tab === id;
       return {
@@ -301,7 +358,8 @@ class Component extends DCLogic {
     });
     vals.canRemove = s.tab !== 'hair' && !!s.worn[s.tab];
     vals.removeCurrent = () => this.wear(s.tab, s.worn[s.tab]);
-    const theme = C.THEMES[s.levelIdx];
+    const dateTheme = W.DATE_THEMES[s.dateIdx];
+    const theme = s.mode === 'date' ? dateTheme : C.THEMES[s.levelIdx];
     vals.themeName = theme.name;
     vals.hints = theme.hints;
     vals.levelNo = s.levelIdx + 1;
