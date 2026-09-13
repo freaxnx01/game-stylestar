@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHARACTERS, CHAR_IDS, SKINS } from '../wardrobe.js';
+import { CHARACTERS, CHAR_IDS, SKINS, DATE_THEMES } from '../wardrobe.js';
 
 // Genau die vier Kategorien, die in finish() Punkte geben. 'dress' fehlt hier
 // bewusst: der Kleid-Zweig ist eine Alternative zu Oberteil + Unterteil, keine
@@ -51,7 +51,8 @@ for (const charId of ['girl', 'boy']) {
 
   test(`${charId}: jeder Tag zeigt auf ein existierendes Thema`, () => {
     const C = CHARACTERS[charId];
-    const themeIds = new Set(C.THEMES.map(t => t.id));
+    // Erlaubt sind die Themen der Figur und die gemeinsamen Date-Themen.
+    const themeIds = new Set([...C.THEMES.map(t => t.id), ...DATE_THEMES.map(t => t.id)]);
     for (const it of Object.values(C.ITEMS).flat()) {
       for (const tag of it.tags) {
         assert.ok(themeIds.has(tag), `${charId}/${it.id}: unbekannter Tag '${tag}'`);
@@ -83,4 +84,31 @@ test('boy trägt keine Kleider', () => {
   assert.equal(C.defaultWorn.dress, null);
   assert.equal((C.ITEMS.dress || []).length, 0);
   assert.ok(!C.tabs.some(([cat]) => cat === 'dress'), 'boy darf keinen Kleider-Tab haben');
+});
+
+test('es gibt genau die vier Date-Themen', () => {
+  assert.deepEqual(DATE_THEMES.map(t => t.id), ['kino', 'eisdiele', 'sommerfest', 'herbst']);
+  for (const t of DATE_THEMES) {
+    assert.ok(t.name.length > 0, `${t.id}: name fehlt`);
+    assert.ok(Array.isArray(t.hints) && t.hints.length > 0, `${t.id}: hints fehlen`);
+  }
+});
+
+test('jedes Date-Thema ist fuer beide Figuren mit drei Sternen loesbar', () => {
+  for (const t of DATE_THEMES) {
+    for (const charId of ['girl', 'boy']) {
+      const C = CHARACTERS[charId];
+      for (const cat of SCORING_CATS) {
+        const hit = (C.ITEMS[cat] || []).some(it => it.tags.includes(t.id));
+        assert.ok(hit, `${charId}/${t.id}: kein passendes Teil in '${cat}'`);
+      }
+    }
+  }
+});
+
+test('jedes sig eines Date-Themas loest bei der jeweiligen Figur auf', () => {
+  for (const t of DATE_THEMES) {
+    assert.ok(CHARACTERS.girl.ITEM_BY_ID[t.sig.girl], `${t.id}: sig.girl '${t.sig.girl}' unbekannt`);
+    assert.ok(CHARACTERS.boy.ITEM_BY_ID[t.sig.boy], `${t.id}: sig.boy '${t.sig.boy}' unbekannt`);
+  }
 });
