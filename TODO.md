@@ -2,36 +2,6 @@
 
 Geparkte Punkte, die bewusst nicht in einem laufenden Issue stecken.
 
-## Hautton
-
-Gemeldet am 2026-09-12 („beim Start ist brauner Hautton gewählt, Figur hat aber
-helle Haut"), **gelöst am 2026-09-14**.
-
-**Ursache:** erzwungener Dark Mode im Browser. Chrome invertiert dabei
-CSS-Farben — also auch das `background` der Hautton-Kreise, wodurch der helle
-Ton `#F8CEAA` dunkelbraun erscheint. Die Figur ist ein SVG-Data-URI; dessen
-Innenfarben invertiert Chrome nicht. Swatch und Figur zeigten deshalb
-gegensätzliche Töne. Meine erste Prüfung lief in hellem Modus und konnte das
-nicht sehen.
-
-**Fix:** `:root{color-scheme:only light;}` in `index.html` — die Seite bringt
-ihr Farbschema selbst mit und wird nicht mehr invertiert. Nachgestellt und
-verifiziert mit `chromium --force-dark-mode`.
-
-Offen bleiben drei kleinere Punkte aus derselben Ecke:
-
-- [ ] **Haar-Thumbnails folgen dem Hautton nicht.** Die Gesichtsfarbe in der
-  Frisuren-Vorschau ist hartcodiert `#F3D9C0` und damit keiner der drei Töne aus
-  `SKINS`. `buildHair(hairDefs, faceFill)` in `wardrobe-core.js` nimmt den Ton
-  bereits als Parameter, er muss nur durchgereicht werden.
-
-- [ ] **Hautton wird nicht persistiert.** Nach einem Reload springt die Figur
-  zurück auf Ton 1. Gehört in den `stylestar_v1`-Wert, der inzwischen bei v3
-  steht.
-
-- [ ] **Hautton nur auf dem Startscreen wählbar.** Im Ankleide-Screen lässt er
-  sich nicht mehr ändern.
-
 ## Infrastruktur
 
 - [ ] **CI-Checks auf Pipeline-PRs stehen auf `action_required`.** Aufgefallen am

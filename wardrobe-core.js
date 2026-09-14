@@ -33,14 +33,24 @@ export function buildItems(rawItems, evb = {}) {
   return { ITEMS, ITEM_BY_ID };
 }
 
-// faceFill ist der Gesichtston im Frisuren-Thumbnail. Er ist bewusst ein
-// Parameter mit dem heutigen Festwert als Default, damit sich die Optik durch
-// diesen Refactor nicht ändert.
-export function buildHair(hairDefs, faceFill = '#F3D9C0') {
+// faceFill ist der Gesichtston im Frisuren-Thumbnail. Default ist der erste
+// Hautton, also derselbe, mit dem die Figur startet.
+export function buildHair(hairDefs, faceFill = SKINS[0]) {
   return hairDefs.map(h => ({
     ...h,
     backImg: uri(h.back),
     frontImg: uri(h.front),
     thumb: uri(h.back + `<ellipse cx='150' cy='88' rx='50' ry='54' fill='${faceFill}'/>` + h.front, TVB.hair),
   }));
+}
+
+// Der Gesichtston im Thumbnail muss dem gewählten Hautton folgen, back/front
+// hängen aber nicht daran. Statt bei jedem Render neu zu bauen, liefert die
+// Fabrik pro Ton eine gemerkte Liste — es gibt nur so viele wie SKINS.
+export function hairFactory(hairDefs) {
+  const cache = new Map();
+  return (faceFill = SKINS[0]) => {
+    if (!cache.has(faceFill)) cache.set(faceFill, buildHair(hairDefs, faceFill));
+    return cache.get(faceFill);
+  };
 }

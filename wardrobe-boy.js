@@ -1,5 +1,5 @@
 // StyleUp! – Kleiderschrank der Jungen-Figur
-import { uri, sp, dot, capSleeve, tank, sleeves, hip, legs, buildItems, buildHair } from './wardrobe-core.js';
+import { uri, sp, dot, capSleeve, tank, sleeves, hip, legs, buildItems, hairFactory } from './wardrobe-core.js';
 
 const dollUri = (c) => uri(`
 <path d='M95 170 L84 300' stroke='${c}' stroke-width='19' stroke-linecap='round' fill='none'/>
@@ -19,7 +19,7 @@ const dollUri = (c) => uri(`
 <path d='M118 250 Q150 264 182 250 L186 322 L156 322 L150 306 L144 322 L114 322 Z' fill='#5B84C4'/>
 `);
 
-const HAIR = buildHair([
+const hairFor = hairFactory([
   { id: 'h1', name: 'Kurzhaarschnitt', c: '#8A5B34',
     back: `<path d='M96 88 Q150 18 204 88 L204 120 L96 120 Z' fill='#8A5B34'/>`,
     front: `<path d='M99 94 Q97 32 150 28 Q203 32 201 94 Q196 62 150 56 Q104 62 99 94 Z' fill='#8A5B34'/>` },
@@ -40,6 +40,10 @@ const HAIR = buildHair([
     back: `<path d='M100 94 Q150 26 200 94 L200 112 L100 112 Z' fill='#2F2A26'/>`,
     front: `<path d='M102 92 Q102 38 150 34 Q198 38 198 92 Q192 66 150 62 Q108 66 102 92 Z' fill='#2F2A26' opacity='.9'/>` },
 ]);
+
+// HAIR im Starthautton: der tonlose Zugriff auf ids, back und front, den
+// defaultWorn und die Tests brauchen. Angezeigt wird hairFor(ton).
+const HAIR = hairFor();
 
 const rawItems = {
   top: [
@@ -104,7 +108,7 @@ export const CHARACTER = {
   id: 'boy',
   name: 'Junge',
   dollUri,
-  HAIR, ITEMS, ITEM_BY_ID, THEMES,
+  HAIR, hairFor, ITEMS, ITEM_BY_ID, THEMES,
   tabs: [['hair', 'Haare'], ['top', 'Oben'], ['bottom', 'Unten'], ['shoes', 'Schuhe'], ['extra', 'Extras']],
   defaultWorn: { hair: 'h1', top: 't2', bottom: 'b2', dress: null, shoes: 's2', extra: null },
 };

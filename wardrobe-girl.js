@@ -1,5 +1,5 @@
 // StyleUp! – Kleiderschrank der Mädchen-Figur
-import { uri, sp, dot, fl, capSleeve, tank, sleeves, hip, legs, buildItems, buildHair } from './wardrobe-core.js';
+import { uri, sp, dot, fl, capSleeve, tank, sleeves, hip, legs, buildItems, hairFactory } from './wardrobe-core.js';
 
 const dollUri = (c) => uri(`
 <path d='M97 168 L86 300' stroke='${c}' stroke-width='17' stroke-linecap='round' fill='none'/>
@@ -21,7 +21,7 @@ const dollUri = (c) => uri(`
 <path d='M118 294 Q150 308 182 294 L184 328 L156 332 L150 320 L144 332 L116 328 Z' fill='#EDE7F5'/>
 `);
 
-const HAIR = buildHair([
+const hairFor = hairFactory([
   { id: 'h1', name: 'Lange Mähne', c: '#F2C14E',
     back: `<path d='M90 80 Q150 4 210 80 L216 298 Q183 316 150 316 Q117 316 84 298 Z' fill='#F2C14E'/>`,
     front: `<path d='M97 96 Q94 28 150 24 Q206 28 203 96 Q198 102 193 96 Q195 54 150 50 Q105 54 107 96 Q102 102 97 96 Z' fill='#F2C14E'/>` },
@@ -43,6 +43,10 @@ const HAIR = buildHair([
     back: `<ellipse cx='150' cy='100' rx='64' ry='74' fill='#5B3A26'/>` + [[104, 66], [150, 40], [196, 66], [96, 118], [204, 118], [102, 168], [198, 168]].map(p => dot(p[0], p[1], 26, '#5B3A26')).join(''),
     front: `<path d='M99 92 Q98 30 150 26 Q202 30 201 92 Q196 60 150 54 Q104 60 99 92 Z' fill='#5B3A26'/>` + dot(103, 92, 12, '#5B3A26') + dot(197, 92, 12, '#5B3A26') },
 ]);
+
+// HAIR im Starthautton: der tonlose Zugriff auf ids, back und front, den
+// defaultWorn und die Tests brauchen. Angezeigt wird hairFor(ton).
+const HAIR = hairFor();
 
 const rawItems = {
   top: [
@@ -111,7 +115,7 @@ export const CHARACTER = {
   id: 'girl',
   name: 'Mädchen',
   dollUri,
-  HAIR, ITEMS, ITEM_BY_ID, THEMES,
+  HAIR, hairFor, ITEMS, ITEM_BY_ID, THEMES,
   tabs: [['hair', 'Haare'], ['dress', 'Kleider'], ['top', 'Oben'], ['bottom', 'Unten'], ['shoes', 'Schuhe'], ['extra', 'Extras']],
   defaultWorn: { hair: 'h1', top: 't2', bottom: 'b2', dress: null, shoes: 's2', extra: null },
 };

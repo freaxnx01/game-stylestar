@@ -112,3 +112,25 @@ test('jedes sig eines Date-Themas loest bei der jeweiligen Figur auf', () => {
     assert.ok(CHARACTERS.boy.ITEM_BY_ID[t.sig.boy], `${t.id}: sig.boy '${t.sig.boy}' unbekannt`);
   }
 });
+
+test('hairFor faerbt das Gesicht im Thumbnail im gewaehlten Hautton', () => {
+  for (const charId of CHAR_IDS) {
+    const C = CHARACTERS[charId];
+    for (const skin of SKINS) {
+      for (const h of C.hairFor(skin)) {
+        const svg = decodeURIComponent(h.thumb);
+        assert.ok(svg.includes(`fill='${skin}'`),
+          `${charId}/${h.id}: Thumbnail zeigt den Hautton ${skin} nicht`);
+      }
+    }
+  }
+});
+
+test('hairFor liefert dieselben Frisuren wie HAIR und cacht je Ton', () => {
+  for (const charId of CHAR_IDS) {
+    const C = CHARACTERS[charId];
+    assert.deepEqual(C.hairFor(SKINS[1]).map(h => h.id), C.HAIR.map(h => h.id));
+    assert.equal(C.hairFor(SKINS[1]), C.hairFor(SKINS[1]), 'zweiter Aufruf muss dieselbe Liste liefern');
+    assert.notEqual(C.hairFor(SKINS[1]), C.hairFor(SKINS[2]));
+  }
+});

@@ -146,6 +146,12 @@ a{color:#D6437F;} a:hover{color:#A82C60;}
           </div>
         </div>
         <div style="width:370px;max-width:100%;background:rgba(255,255,255,.72);border-radius:28px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 30px rgba(138,79,184,.15);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-weight:800;font-size:13px;color:#7A5A96;">Hautton:</span>
+            <sc-for list="{{ skinBtnsSmall }}" as="gsk" hint-placeholder-count="3">
+              <button style="{{ gsk.style }}" onClick="{{ gsk.pick }}" aria-label="Hautton"></button>
+            </sc-for>
+          </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="6">
               <button onClick="{{ tb.pick }}" style="{{ tb.style }}">{{ tb.label }}</button>
@@ -243,12 +249,23 @@ class Component extends DCLogic {
       this.setState({
         ready: true,
         progress: migrated,
+        // Der gespeicherte Ton ist nur auf 'ganze Zahl >= 0' geprüft — erst
+        // hier ist SKINS bekannt, also klemmt er hier gegen die Liste.
+        skin: Math.min(migrated.skin, w.SKINS.length - 1),
         worn: { ...w.CHARACTERS[this.state.char].defaultWorn },
       });
     });
   }
   componentWillUnmount() { clearInterval(this.likesTimer); }
   save(p) { try { localStorage.setItem(this.P.STORAGE_KEY, JSON.stringify(p)); } catch (e) {} }
+  // Der Hautton gehört zum Fortschritt, nicht nur zum laufenden Spiel —
+  // sonst steht die Figur nach einem Reload wieder im Startton da.
+  pickSkin(i) {
+    if (i === this.state.skin) return;
+    const prog = { ...this.state.progress, skin: i };
+    this.save(prog);
+    this.setState({ skin: i, progress: prog });
+  }
   pickChar(id) {
     if (id === this.state.char) return;
     this.setState({ char: id, ...this.R.switchCharacterState(this.W.CHARACTERS[id]) });
@@ -334,7 +351,7 @@ class Component extends DCLogic {
       showLoading: !s.ready, showStart: false, showLevels: false, showGame: false, showResult: false,
       showDateThemes: false, showDateResult: false,
       dollL: HIDE, hairBackL: HIDE, hairFrontL: HIDE, topL: HIDE, bottomL: HIDE, dressL: HIDE, shoesL: HIDE, extraL: HIDE,
-      levels: [], gridItems: [], tabs: [], skinBtns: [], hints: [], dateThemes: [], dateFigures: [], dateStars: [],
+      levels: [], gridItems: [], tabs: [], skinBtns: [], skinBtnsSmall: [], hints: [], dateThemes: [], dateFigures: [], dateStars: [],
       stepLabel: '', finishLabel: 'Fertig – zeig deinen Look!', dateTitle: '',
       bigBtnHover: { transform: 'scale(1.05)' },
       startGame: () => this.leaveDate('levels'),
@@ -355,16 +372,23 @@ class Component extends DCLogic {
     this._dolls = this._dolls || {};
     const dollKey = s.char + ':' + s.skin;
     vals.dollL = L(this._dolls[dollKey] = this._dolls[dollKey] || C.dollUri(W.SKINS[s.skin]));
-    const hair = C.HAIR.find(h => h.id === s.worn.hair) || C.HAIR[0];
+    // Die Frisuren-Thumbnails zeigen ein Gesicht und müssen deshalb dem
+    // gewählten Hautton folgen; hairFor merkt sich die Liste je Ton.
+    const hairList = C.hairFor(W.SKINS[s.skin]);
+    const hair = hairList.find(h => h.id === s.worn.hair) || hairList[0];
     vals.hairBackL = L(hair.backImg);
     vals.hairFrontL = L(hair.frontImg);
     for (const cat of ['top', 'bottom', 'dress', 'shoes', 'extra']) {
       vals[cat + 'L'] = s.worn[cat] ? L(C.ITEM_BY_ID[s.worn[cat]].img) : HIDE;
     }
-    vals.skinBtns = W.SKINS.map((c, i) => ({
-      style: { width: '40px', height: '40px', borderRadius: '50%', background: c, border: i === s.skin ? '3px solid #F45FA2' : '3px solid #fff', cursor: 'pointer', boxShadow: '0 3px 8px rgba(0,0,0,.15)' },
-      pick: () => this.setState({ skin: i })
+    // Dieselbe Wahl an zwei Orten: gross auf dem Startscreen, klein in der
+    // Seitenleiste beim Ankleiden.
+    const skinBtns = size => W.SKINS.map((c, i) => ({
+      style: { width: size, height: size, borderRadius: '50%', background: c, border: i === s.skin ? '3px solid #F45FA2' : '3px solid #fff', cursor: 'pointer', boxShadow: '0 3px 8px rgba(0,0,0,.15)', padding: '0' },
+      pick: () => this.pickSkin(i)
     }));
+    vals.skinBtns = skinBtns('40px');
+    vals.skinBtnsSmall = skinBtns('30px');
     vals.charBtns = W.CHAR_IDS.map(id => {
       const ch = W.CHARACTERS[id], act = id === s.char;
       const key = id + ':' + s.skin;
@@ -409,7 +433,8 @@ class Component extends DCLogic {
           const FC = W.CHARACTERS[id], look = s.dateLooks[id] || FC.defaultWorn;
           const key = id + ':' + s.skin;
           const doll = this._dolls[key] = this._dolls[key] || FC.dollUri(W.SKINS[s.skin]);
-          const hr = FC.HAIR.find(h => h.id === look.hair) || FC.HAIR[0];
+          const fcHair = FC.hairFor(W.SKINS[s.skin]);
+          const hr = fcHair.find(h => h.id === look.hair) || fcHair[0];
           const src = {
             hairBack: hr.backImg, doll, hairFront: hr.frontImg,
             top: look.top && FC.ITEM_BY_ID[look.top].img,
@@ -436,7 +461,7 @@ class Component extends DCLogic {
         pick: () => this.setState({ tab: id })
       };
     });
-    const list = s.tab === 'hair' ? C.HAIR : C.ITEMS[s.tab];
+    const list = s.tab === 'hair' ? hairList : C.ITEMS[s.tab];
     vals.gridItems = list.map(it => {
       const sel = s.worn[s.tab] === it.id;
       return {

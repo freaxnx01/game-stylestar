@@ -6,9 +6,10 @@ export const STORAGE_KEY = 'stylestar_v1';
 export const blankChar = () => ({ unlocked: 1, stars: {} });
 
 export const blankProgress = (charIds) => ({
-  v: 3,
+  v: 4,
   chars: Object.fromEntries(charIds.map(id => [id, blankChar()])),
   dates: { stars: {} },
+  skin: 0,
 });
 
 const charsFrom = (src, charIds) => {
@@ -22,15 +23,27 @@ const charsFrom = (src, charIds) => {
   return chars;
 };
 
+// Der Hautton ist ein Index in SKINS. Die Liste kennt progress.js nicht, also
+// wird hier nur auf 'nicht-negative ganze Zahl' geprüft; gegen die tatsächliche
+// Länge klemmt die Anzeige.
+const skinFrom = (src) => (Number.isInteger(src) && src >= 0) ? src : 0;
+
 const datesFrom = (src) =>
   (src && src.stars && typeof src.stars === 'object') ? { stars: { ...src.stars } } : { stars: {} };
 
 export function migrate(parsed, charIds) {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return blankProgress(charIds);
 
-  // v2 und v3 unterscheiden sich nur darin, dass v3 den Date-Zweig kennt.
-  if ((parsed.v === 2 || parsed.v === 3) && parsed.chars && typeof parsed.chars === 'object') {
-    return { v: 3, chars: charsFrom(parsed.chars, charIds), dates: datesFrom(parsed.dates) };
+  // v2, v3 und v4 unterscheiden sich nur in Zweigen, die dazugekommen sind:
+  // v3 kennt die Dates, v4 den gewählten Hautton. Ältere Stände erben die
+  // Defaults, ohne dass Sterne verloren gehen.
+  if ((parsed.v === 2 || parsed.v === 3 || parsed.v === 4) && parsed.chars && typeof parsed.chars === 'object') {
+    return {
+      v: 4,
+      chars: charsFrom(parsed.chars, charIds),
+      dates: datesFrom(parsed.dates),
+      skin: skinFrom(parsed.skin),
+    };
   }
 
   // Altes Flachformat { unlocked, stars } — der gesamte Stand gehört dem Mädchen.
