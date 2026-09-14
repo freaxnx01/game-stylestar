@@ -8,6 +8,7 @@ All notable changes to this project are documented here, following
 [Semantic Versioning](https://semver.org).
 """
 body = """
+
 {% if version %}\
 ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% else %}\
@@ -15,12 +16,34 @@ body = """
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
-{% for commit in commits %}
+{% for commit in commits %}\
 - {{ commit.message | upper_first }}
-{% endfor %}
+{% endfor %}\
+{% endfor %}\
+"""
+# Keep a Changelog verlangt anklickbare Versions-Überschriften. Die Referenzen
+# stehen deshalb im Footer: Unreleased und jede Version vergleichen gegen ihren
+# Vorgänger, die älteste zeigt auf ihren Release-Tag.
+footer = """
+{% for release in releases -%}
+{% if release.version -%}
+{% if release.previous.version -%}
+[{{ release.version | trim_start_matches(pat="v") }}]: https://github.com/freaxnx01/game-stylestar/compare/{{ release.previous.version }}...{{ release.version }}
+{% else -%}
+[{{ release.version | trim_start_matches(pat="v") }}]: https://github.com/freaxnx01/game-stylestar/releases/tag/{{ release.version }}
+{% endif -%}
+{% else -%}
+[Unreleased]: https://github.com/freaxnx01/game-stylestar/compare/{{ release.previous.version }}...HEAD
+{% endif -%}
 {% endfor %}
 """
 trim = true
+# Der Footer wird als eigenes Segment gerendert und beginnt deshalb direkt auf
+# der Zeile nach dem letzten Eintrag. Ohne Leerzeile davor schluckt Markdown die
+# Link-Definitionen als Fortsetzung des letzten Listenpunkts.
+postprocessors = [
+  { pattern = "\\[Unreleased\\]:", replace = "\n[Unreleased]:" },
+]
 
 [git]
 conventional_commits = true
