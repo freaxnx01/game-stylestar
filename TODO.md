@@ -10,12 +10,10 @@ Geparkte Punkte, die bewusst nicht in einem laufenden Issue stecken.
   ein Mensch sie freigibt. Der Auto-Review hat den PR trotzdem auf *ready*
   promotet, ohne dass je ein Test lief. Freigeben liess sich der Lauf per
   `gh api -X POST repos/<repo>/actions/runs/<id>/approve` (danach grün, 24/24).
-  Betrifft **jeden** künftigen Pipeline-PR — also genau die, bei denen der Check
-  am meisten zählt. Zu klären: passende Actions-Einstellung im Repo, oder ein
-  Freigabeschritt in der Pipeline.
 
-- [ ] **`agent.yml` referenziert `@v1` statt eines SHA.** Aufgefallen am
-  2026-09-12 durch den automatischen Security-Review. Kein Fremd-Repo, also kein
-  Supply-Chain-Risiko durch Dritte — aber `v1` ist verschiebbar. Die Datei kommt
-  1:1 aus `onboard-consumer.sh`, der Fix gehört deshalb in den Generator im Repo
-  `agent-workflow`, nicht in diesen Stub.
+  Der Punkt wird **in der Pipeline** gelöst, nicht hier: er hängt am Token, mit
+  dem `agent-implement.yml` den PR eröffnet, und ist dort als
+  [agent-workflow#364](https://github.com/freaxnx01/agent-workflow/issues/364)
+  offen. Bleibt als Notiz stehen, weil er jeden künftigen Pipeline-PR in diesem
+  Repo betrifft — bis #364 zu ist, muss der Lauf hier von Hand freigegeben
+  werden, sonst steht ein grüner Review vor einem PR, auf dem nie ein Test lief.
