@@ -6,12 +6,15 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-29
+
 ### Added
 - Add favicon
 - Jungen-Figur mit eigenem Kleiderschrank und Themen (#3)
 - Date-Themen, Paar-Bewertung und Fortschritt (#11)
 - Date-Modus spielbar machen – Flow und gemeinsame Szene (#12)
 - Hautton überall sichtbar, wählbar und gespeichert
+- Fullscreen toggle (⛶) in the game navigation
 
 ### Changed
 - Rename game to StyleUp!
@@ -39,6 +42,7 @@ All notable changes to this project are documented here, following
 ### Added
 - Initial release of StyleStar – Ankleide-Puzzle
 
-[Unreleased]: https://github.com/freaxnx01/game-stylestar/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/freaxnx01/game-stylestar/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/freaxnx01/game-stylestar/releases/tag/v0.2.0
 [0.1.0]: https://github.com/freaxnx01/game-stylestar/releases/tag/v0.1.0
 
